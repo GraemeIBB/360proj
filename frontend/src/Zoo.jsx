@@ -2,7 +2,7 @@ import SearchBar from './components/SearchBar.jsx'
 
 function Zoo(){
     return(
-        <SearchBar/>
+        <SearchBar onSearch={(q) => console.log(q)}/>
     )
 }
 
