@@ -10,6 +10,7 @@ function Zoo(){
             <SearchBar onSearch={(q) => console.log(q)}/>
             <Sidebar>
                 <h2>Sidebar Content</h2>
+                <Button title={ "This is a sidebar button" } />
                 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
                 <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
                 <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
