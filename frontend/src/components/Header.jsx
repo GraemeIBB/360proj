@@ -5,7 +5,7 @@ function Header() {
     return (
         <>
             <div className="container">
-                <Navbar notifCount={3}/>
+                <Navbar notifCount={5}/>
             </div>
         </>
     )
