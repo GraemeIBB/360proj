@@ -1,19 +1,100 @@
+.navbar {
+    width: 100%;
+}
+
 .navbar-container {
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    flex-wrap: wrap;
+}
+
+.navbar-logo a {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
 }
 
 .navbar-menu {
-  display: flex;
-  list-style: none;
-  gap: 2rem;
-  margin: 0;
-  padding: 0;
+    display: flex;
+    list-style: none;
+    gap: clamp(0.75rem, 5vw, 5rem);
+    margin: 0;
+    padding: 0;
 }
 
-.navbar {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 1000;
+.navbar-menu a {
+    color: white;
+    text-decoration: none;
+    font-size: clamp(0.75rem, 1.5vw, 0.95rem);
+}
+
+@media (max-width: 600px) {
+    .navbar-container {
+        height: auto;
+        padding-bottom: 0.5rem;
+    }
+
+    .navbar-menu {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        gap: 1.25rem;
+        padding: 0.5rem 0;
+    }
+}
+
+.navbar-menu a:hover {
+    opacity: 0.75;
+}
+
+.navbar-logo {
+    flex: 1;
+}
+
+.navbar-actions {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.navbar-messages-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.navbar-notif {
+    background-color: rgb(160, 0, 0);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+}
+
+.navbar-profile {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid white;
+    overflow: hidden;
+    cursor: pointer;
+    background: none;
+    padding: 0;
+}
+
+.navbar-profile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
