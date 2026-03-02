@@ -1,4 +1,6 @@
 import { useState } from "react"
+import './SearchBar.css';
+import {Search} from 'lucide-react';
 
 
 function SearchBar({ onSearch }){
@@ -14,14 +16,14 @@ function SearchBar({ onSearch }){
     }
 
     return (
-        <form onSubmit={handleSubmit} className="search-bar-container">
+        <form className="search-bar" onSubmit={handleSubmit}>
         <input
-        type="text"
-        placeholder="Search..."
-        value={query}
-        onChange={handleChange}
+            type="text"
+            placeholder="Search Books"
+            value={query}
+            onChange={handleChange}
         />
-        <button type="submit">Search</button>
+        <button type="submit"><Search/></button>
         </form>
     )
 }
