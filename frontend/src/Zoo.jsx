@@ -2,6 +2,7 @@ import SearchBar from './components/SearchBar.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import Navbar from './components/Navbar.jsx'
 import Button from './components/Button.jsx'
+import Footer from './components/Footer.jsx'
 
 function Zoo(){
     return(
@@ -23,6 +24,7 @@ function Zoo(){
                 <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
             </Sidebar>
             <Navbar />
+            <Footer />
         </>
     )
 }
