@@ -1,6 +1,15 @@
+import { useState, useEffect } from 'react'
 import './Navbar.css'
 
-function Navbar({ notifCount = 0 }) {
+function Navbar() {
+  const [notifs, setNotifs] = useState(1)
+
+  useEffect(() => {
+    fetch("http://localhost:8080/notif")
+      .then(res => res.json())
+      .then(data => setNotifs(data))
+  }, [])
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
@@ -14,8 +23,8 @@ function Navbar({ notifCount = 0 }) {
           <li><a href="listings">My Listings</a></li>
           <li className="navbar-messages-item">
             <a href="messages">My Messages</a>
-            {notifCount > 0 && (
-              <span className="navbar-notif">{notifCount}</span>
+            {notifs > 0 && (
+              <span className="navbar-notif">{notifs}</span>
             )}
           </li>
         </ul>
