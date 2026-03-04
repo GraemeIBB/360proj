@@ -1,6 +1,8 @@
+import './Button.css';
+
 function Button({type, title}){
     return (
-        <button type={type || 'button'}>{title}</button>
+        <button id="button" type={type || 'button'}>{title}</button>
     )
 }
 export default Button
