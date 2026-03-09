@@ -12,7 +12,10 @@ function SearchBar({ onSearch }){
     }
     const handleSubmit = (event) => {
         event.preventDefault();
-        onSearch(query)
+        if (onSearch) {
+            onSearch(query);
+        }
+        setQuery("");
     }
 
     return (
