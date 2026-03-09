@@ -1,0 +1,74 @@
+{
+  "books": [
+    {
+      "title": "To Kill a Mockingbird",
+      "genre": "Fiction",
+      "isbn": "9780061120084",
+      "writer": "Harper Lee",
+      "year": 1960
+    },
+    {
+      "title": "1984",
+      "genre": "Dystopian",
+      "isbn": "9780451524935",
+      "writer": "George Orwell",
+      "year": 1949
+    },
+    {
+      "title": "The Great Gatsby",
+      "genre": "Classic",
+      "isbn": "9780743273565",
+      "writer": "F. Scott Fitzgerald",
+      "year": 1925
+    },
+    {
+      "title": "The Hobbit",
+      "genre": "Fantasy",
+      "isbn": "9780547928227",
+      "writer": "J.R.R. Tolkien",
+      "year": 1937
+    },
+    {
+      "title": "Pride and Prejudice",
+      "genre": "Romance",
+      "isbn": "9781503290563",
+      "writer": "Jane Austen",
+      "year": 1813
+    },
+    {
+      "title": "The Catcher in the Rye",
+      "genre": "Literary Fiction",
+      "isbn": "9780316769488",
+      "writer": "J.D. Salinger",
+      "year": 1951
+    },
+    {
+      "title": "Dune",
+      "genre": "Science Fiction",
+      "isbn": "9780441172719",
+      "writer": "Frank Herbert",
+      "year": 1965
+    },
+    {
+      "title": "The Alchemist",
+      "genre": "Adventure",
+      "isbn": "9780062315007",
+      "writer": "Paulo Coelho",
+      "year": 1988
+    },
+    {
+      "title": "Harry Potter and the Sorcerer's Stone",
+      "genre": "Fantasy",
+      "isbn": "9780590353427",
+      "writer": "J.K. Rowling",
+      "year": 1997
+    },
+    {
+      "title": "The Road",
+      "genre": "Post-Apocalyptic",
+      "isbn": "9780307387899",
+      "writer": "Cormac McCarthy",
+      "year": 2006
+    }
+  ]
+}
