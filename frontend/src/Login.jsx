@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Button from './components/Button';
@@ -7,6 +8,7 @@ import './Login.css';
 function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const navigate = useNavigate();
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -19,13 +21,11 @@ function Login() {
             },
             body: JSON.stringify({ username, password })
         })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Response from server:', data);
-            if(data.message === 'logged in!') {
-                alert(`Welcome, ${data.username}!`);
+        .then(response => {
+            if (response.ok) {
+                navigate('/');
             } else {
-                alert('Login failed: ' + data.message);
+                return response.json().then(data => alert('Login failed: ' + data.message));
             }
         })
         .catch(error => {
