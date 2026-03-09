@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import SearchBar from './components/SearchBar';
@@ -38,7 +39,7 @@ function Home() {
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/search?${query}`);
+                const response = await fetch(`http://localhost:3000/search?${query}`);
 
                 if (!response.ok) {
                     throw new Error('Search request failed');

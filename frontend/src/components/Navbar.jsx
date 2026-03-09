@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import './Navbar.css'
 
 function Navbar() {
   const [notifs, setNotifs] = useState(1)
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetch("http://localhost:8080/notif")
@@ -14,11 +16,11 @@ function Navbar() {
     <nav className="navbar">
       <div className="navbar-container">
         <div className="navbar-logo">
-          <a href="/">Book Buddies</a>
+          <Link to="/">Book Buddies</Link>
         </div>
 
         <ul className="navbar-menu">
-          <li><a href="home">Home</a></li>
+          <li><Link to="/">Home</Link></li>
           <li><a href="search">Search</a></li>
           <li><a href="listings">My Listings</a></li>
           <li className="navbar-messages-item">
@@ -30,7 +32,7 @@ function Navbar() {
         </ul>
 
         <div className="navbar-actions">
-          <button className="navbar-profile" onClick={() => window.location.href = "/profile"}>
+          <button className="navbar-profile" onClick={() => navigate('/login')}>
             <img src="https://placehold.co/40x40" alt="Profile" />
           </button>
         </div>
