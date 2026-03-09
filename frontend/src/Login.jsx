@@ -11,28 +11,27 @@ function Login() {
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log('Login attempted with:', { username, password });
-        // TODO: add login authentication logic
-        useEffect(() => {
-            fetch('localhost:3000/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username, password })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-            })
-            .catch(error => {
-                console.error('Login error:', error);
-            });
-        }, [])
+        
+        fetch('http://localhost:3000/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('test').innerText = JSON.stringify(data);
+        })
+        .catch(error => {
+            console.error('Login error:', error);
+        });
     };
 
     return (
         <div className="login-container">
             <Header />
+            <div id="test"></div>
             <div className="login-form-wrapper">
                 <div className="login-form">
                     <h1>Login</h1>
