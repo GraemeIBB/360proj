@@ -9,7 +9,7 @@ router.post('/login', function(req, res, next) {
     const { username, password } = req.body;
     console.log(username, password);
 
-    if (password != "password") {
+    if (password != "password" || username != "username") {
         res.status(401).json({ message: 'wrong password', username });
     } else {
         res.status(201).json({ message: 'logged in!', username })
