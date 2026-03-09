@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import './Sidebar.css';
 
-const Sidebar = ({ children }) => {
+const Sidebar = forwardRef(({ children }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
+
+  useImperativeHandle(ref, () => ({
+    toggle: toggleSidebar
+  }));
 
   return (
     <>
@@ -20,6 +24,8 @@ const Sidebar = ({ children }) => {
       </div>
     </>
   );
-};
+});
+
+Sidebar.displayName = 'Sidebar';
 
 export default Sidebar;

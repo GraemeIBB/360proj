@@ -3,7 +3,7 @@
   top: 20px;
   left: 0px;
   padding: 10px 15px;
-  background-color: #007bff;
+  background-color: gray;
   color: white;
   border: none;
   border-top-right-radius: 5px;
@@ -15,7 +15,7 @@
 }
 
 .sidebar-toggle:hover {
-  background-color: #0056b3;
+  background-color: rgb(160, 92, 90);
 }
 
 .sidebar-toggle.open {
@@ -45,10 +45,37 @@
 .sidebar-content h2 {
   margin-top: 0;
   color: #333;
+  text-align: center;
 }
 
 .sidebar-content p {
   margin-bottom: 15px;
   line-height: 1.5;
   color: #666;
+}
+
+.sidebar-group label {
+  display: block;
+  margin: 5px;
+  font-weight: bold;
+  color: #333;
+}
+
+.sidebar-group input,
+.sidebar-group select {
+  color: white;
+  width: 90%;
+  padding: 8px 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.sidebar-group input[type="number"] {
+  width: calc(50% - 10px);
+  margin-right: 10px;
+}
+
+.sidebar-group input[type="number"]:last-child {
+  margin-right: 0;
 }
