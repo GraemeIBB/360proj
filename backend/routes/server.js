@@ -76,8 +76,10 @@ router.get("/search", (req, res) => {
             results = results.filter(book => Number(book.price ?? Number.POSITIVE_INFINITY) <= maxPriceNum);
         }
     }
-
-    res.json(results);
+    if (results.length === 0) {
+        return res.status(404).json({ message: 'no results found' });
+    }
+    res.status(200).json({ results: results })
 });
 
 module.exports = router;
