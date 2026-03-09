@@ -1,6 +1,6 @@
 .sidebar-toggle {
   position: fixed;
-  top: 60px;
+  top: 10%;
   left: 0px;
   padding: 10px 15px;
   background-color: gray;
@@ -52,4 +52,50 @@
   margin-bottom: 15px;
   line-height: 1.5;
   color: #666;
+}
+
+.sidebar-group {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: rgb(160, 92, 90);
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: white;
+  font-size: 14px;
+}
+
+.sidebar-group input,
+.sidebar-group select {
+  color: white;
+  width: 90%;
+  padding: 8px 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.sidebar-group input[type="number"] {
+  width: calc(50% - 5px);
+  margin-right: 10px;
+}
+
+.sidebar-group input[type="number"]:last-child {
+  margin-right: 0;
+}
+
+.sidebar-group span {
+  font-weight: 500;
+  color: white;
+  margin: 0 5px;
+}
+
+.last-element {
+  margin-bottom: 50px;
 }
