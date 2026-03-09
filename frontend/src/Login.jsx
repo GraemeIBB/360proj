@@ -21,10 +21,16 @@ function Login() {
         })
         .then(response => response.json())
         .then(data => {
-            document.getElementById('test').innerText = JSON.stringify(data);
+            console.log('Response from server:', data);
+            if(data.message === 'logged in!') {
+                alert(`Welcome, ${data.username}!`);
+            } else {
+                alert('Login failed: ' + data.message);
+            }
         })
         .catch(error => {
-            console.error('Login error:', error);
+            console.log('Login error:', error);
+            alert('An error occurred during login.');
         });
     };
 
