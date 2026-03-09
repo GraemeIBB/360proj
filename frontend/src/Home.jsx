@@ -67,7 +67,7 @@ function Home() {
                 <span> to </span>
                 <input type="number" id="price-max" placeholder="Max" />
             </div>
-            <div className="sidebar-group">
+            <div className="sidebar-group last-element">
                 <label htmlFor="year-filter">Publication Year:</label>
                 <input type="number" id="year-filter" placeholder="e.g., 2020" />
             </div>
