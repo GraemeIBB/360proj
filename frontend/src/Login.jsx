@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-//import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Button from './components/Button';
@@ -14,7 +14,7 @@ function Login() {
         e.preventDefault();
         console.log('Login attempted with:', { username, password });
         
-        fetch('http://localhost:3000/login', {
+        fetch('http://localhost:8800/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
