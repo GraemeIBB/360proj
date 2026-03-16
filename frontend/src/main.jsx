@@ -9,6 +9,6 @@ import Temp from './Temp.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <Temp />
+    <Home />
   </StrictMode>,
 )
