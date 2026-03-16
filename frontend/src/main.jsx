@@ -5,7 +5,7 @@ import App from './App.jsx'
 import Zoo from './Zoo.jsx'
 import Home from './Home.jsx'
 import Login from './Login.jsx'
-import Temp from './Temp.jsx';
+import Temp from './Sign Up.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
