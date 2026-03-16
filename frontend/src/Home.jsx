@@ -10,6 +10,7 @@ import './Home.css';
 function Home() {
     const sidebarRef = useRef(null);
     const [searchResults, setSearchResults] = useState([]);
+    const [searchResponseJson, setSearchResponseJson] = useState(null);
     const [noResults, setNoResults] = useState(false);
     const [searchError, setSearchError] = useState('');
     const [titleFilter, setTitleFilter] = useState('');
@@ -33,22 +34,31 @@ function Home() {
 
             if (!query) {
                 setSearchResults([]);
+                setSearchResponseJson(null);
                 setNoResults(false);
                 return;
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/search?${query}`);
+                const response = await fetch(`http://localhost:3000/search?${query}`);
+                const data = await response.json();
+                setSearchResponseJson(data);
+
+                const normalizedResults = Array.isArray(data)
+                    ? data
+                    : Array.isArray(data.results)
+                        ? data.results
+                        : [];
+
+                setSearchResults(normalizedResults);
+                setNoResults(normalizedResults.length === 0);
 
                 if (!response.ok) {
-                    throw new Error('Search request failed');
+                    setSearchError('Search request returned an error response.');
                 }
-
-                const results = await response.json();
-                setSearchResults(results);
-                setNoResults(results.length === 0);
             } catch (error) {
                 setSearchResults([]);
+                setSearchResponseJson(null);
                 setNoResults(false);
                 setSearchError('Unable to fetch search results.');
             }
@@ -58,6 +68,7 @@ function Home() {
             const trimmedTerm = term.trim();
             if (!trimmedTerm) {
                 setSearchResults([]);
+                setSearchResponseJson(null);
                 setNoResults(false);
                 setSearchError('');
                 return;
@@ -182,6 +193,9 @@ function Home() {
 
                         {searchError && <p>{searchError}</p>}
                         {noResults && <p>No results found</p>}
+                        {searchResponseJson !== null && (
+                            <pre>{JSON.stringify(searchResponseJson, null, 2)}</pre>
+                        )}
                         {searchResults.length > 0 && (
                             <div>
                                 {searchResults.map((book) => (
