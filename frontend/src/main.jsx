@@ -5,9 +5,10 @@ import App from './App.jsx'
 import Zoo from './Zoo.jsx'
 import Home from './Home.jsx'
 import Login from './Login.jsx'
+import Temp from './Temp.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <Home />
+    <Temp />
   </StrictMode>,
 )

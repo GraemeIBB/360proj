@@ -15,12 +15,12 @@ var app = express();
 const mongoose = require('mongoose');
 app.use(express.json());
 
-mongoose.connect("mongodb+srv://jaxonmhay_db_user:qEeIljJFSAw8mEOv@cluster0.p6cfmrg.mongodb.net/?appName=Cluster0")
+mongoose.connect(process.env.ATLAS_URI)
 .then(() => console.log("MongoDB Connected"))
 .catch(err => console.log(err));
 
-app.listen(8000, () => {
-  console.log("Server running on port 8000");
+app.listen(8800, () => {
+  console.log("Server running on port 8800");
 });
 
 // view engine setup
