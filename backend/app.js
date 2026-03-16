@@ -11,6 +11,18 @@ var searchRouter = require('./routes/server')
 
 var app = express();
 
+// database connection
+const mongoose = require('mongoose');
+app.use(express.json());
+
+mongoose.connect("mongodb+srv://jaxonmhay_db_user:qEeIljJFSAw8mEOv@cluster0.p6cfmrg.mongodb.net/?appName=Cluster0")
+.then(() => console.log("MongoDB Connected"))
+.catch(err => console.log(err));
+
+app.listen(8000, () => {
+  console.log("Server running on port 8000");
+});
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
