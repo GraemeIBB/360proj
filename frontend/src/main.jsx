@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import Home from './Home.jsx'
 import Login from './Login.jsx'
+import PostBook from './PostBook.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -11,6 +12,7 @@ createRoot(document.getElementById('root')).render(
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/post-book" element={<PostBook />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
