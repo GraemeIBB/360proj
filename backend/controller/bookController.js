@@ -148,7 +148,6 @@ exports.searchBooks = async (req, res) => {
 
             // Start with availability and add optional filters below.
             let query = { isAvailable: true }; //only shows available books
-
             if (title) {
                 query.title = { $regex: title, $options: 'i' }; //case-insensitive regex search for title
             }
