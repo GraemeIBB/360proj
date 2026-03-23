@@ -7,17 +7,20 @@ var cors = require('cors');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var searchRouter = require('./routes/server')
+var postsRouter = require('./routes/posts');
 
 var app = express();
 
 // database connection
 const mongoose = require('mongoose');
+const { connectDB } = require('./db/conn');
 app.use(express.json());
 
 mongoose.connect(process.env.ATLAS_URI)
 .then(() => console.log("MongoDB Connected"))
 .catch(err => console.log(err));
+
+connectDB();
 
 app.listen(8800, () => {
   console.log("Server running on port 8800");
@@ -49,7 +52,7 @@ app.use((req, res, next) => {
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/', searchRouter)
+app.use('/posts', postsRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -15,9 +15,9 @@ router.get('/', async (req, res, next) => {
 // POST /users
 router.post('/', async (req, res, next) => {
   try {
-    const { firstname, lastname, email, username, password } = req.body;
+    const { firstName, lastName, email, userName, password } = req.body;
 
-    if (!firstname || !lastname || !email || !username || !password) {
+    if (!firstName || !lastName || !email || !userName || !password) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
@@ -26,12 +26,12 @@ router.post('/', async (req, res, next) => {
       return res.status(409).json({ message: 'A user with that email already exists' });
     }
 
-    const existing_username = await User.findOne({ username });
+    const existing_username = await User.findOne({ userName });
     if (existing_username) {
       return res.status(409).json({ message: 'A user with that username already exists' });
     }
 
-    const user = new User({ firstname, lastname, email, username, password });
+    const user = new User({ firstName, lastName, email, userName, password });
     console.log("Saving user:", user);
     await user.save();
     console.log("User saved successfully:", user);
