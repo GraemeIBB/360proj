@@ -8,7 +8,7 @@ router.get('/', function(req, res, next) {
 router.post('/login', function(req, res, next) {
     const { username, password } = req.body;
     console.log(username, password);
-
+        //TODO New passWord logic with bcrypt
     if (password != "password" || username != "username") {
         res.status(401).json({ message: 'wrong password', username });
     } else {
