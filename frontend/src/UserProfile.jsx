@@ -24,7 +24,6 @@ function UserProfile() {
   // Track what content the sidebar is currently showing
   const [viewMode, setViewMode] = useState('default');
   const [sidebarContent, setSidebarContent] = useState(null);
-  // TODO: this doesn't quite work since clicking the button from Sidebar doesn't trigger the toggle function in the way we want, need to figure out how to better control when the sidebar opens and closes
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const displayDefaultSidebarContent = () => {
@@ -38,8 +37,8 @@ function UserProfile() {
   };
 
   const handleSidebarToggle = (isOpen) => {
-  setIsSidebarOpen(isOpen);
-};
+    setIsSidebarOpen(isOpen);
+  };
 
   const handleSaveUsername = () => {
     setUsername(tempUsername);
@@ -74,17 +73,17 @@ function UserProfile() {
   const handleViewTransactionHistory = () => {
     // TODO: implement viewing the transaction history in the sidebar
     setSidebarContent(
-        <div>
-            <h2>Your Transaction History</h2>
-            <p>Here you can view your past transactions.</p>
-        </div>
+      <div>
+        <h2>Your Transaction History</h2>
+        <p>Here you can view your past transactions.</p>
+      </div>
     );
 
     // Only toggle if we aren't already looking at transactions
     if (sidebarRef.current && isSidebarOpen && viewMode !== 'transactions') {
-      sidebarRef.current.toggle();
+      // don't toggle since we're already open, just update content
     } else {
-        sidebarRef.current.toggle();
+      sidebarRef.current.toggle();
     }
     setViewMode('transactions');
   };
@@ -92,16 +91,17 @@ function UserProfile() {
   const handleViewBookPostings = () => {
     // TODO: implement viewing the user's book postings in the sidebar
     setSidebarContent(
-        <div>
-            <h2>Your Book Postings</h2>
-            <p>Here you can view and manage your book postings.</p>
-        </div>
+      <div>
+        <h2>Your Book Postings</h2>
+        <p>Here you can view and manage your book postings.</p>
+      </div>
     );
-    
+
     // Only toggle if we aren't already looking at book postings
     if (sidebarRef.current && isSidebarOpen && viewMode !== 'bookPostings') {
+      // don't toggle since we're already open, just update content
     } else {
-        sidebarRef.current.toggle();
+      sidebarRef.current.toggle();
     }
     setViewMode('bookPostings');
   };
@@ -232,7 +232,6 @@ function UserProfile() {
           />
         </div>
       </div>
-
       <Footer />
     </div>
   );

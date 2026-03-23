@@ -1,9 +1,9 @@
 .user-profile-container {
-    margin-bottom: 40px;
-    display: flex;
-    flex-direction: column;
-    background-color: #f5f5f5;
-    transition: transform 0.3s ease-in-out;
+  margin-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+  transition: transform 0.3s ease-in-out;
 }
 
 .profile-content {
