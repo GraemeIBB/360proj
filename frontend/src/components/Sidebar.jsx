@@ -1,11 +1,17 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import './Sidebar.css';
 
-const Sidebar = forwardRef(({ children }, ref) => {
+const Sidebar = forwardRef(({ children, onToggle }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleSidebar = () => {
-    setIsOpen(!isOpen);
+    setIsOpen(prev => {
+      const newOpen = !prev;
+      if (onToggle) {
+        onToggle(newOpen);
+      }
+      return newOpen;
+    });
   };
 
   useImperativeHandle(ref, () => ({

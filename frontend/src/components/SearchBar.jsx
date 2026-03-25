@@ -20,13 +20,13 @@ function SearchBar({ onSearch }){
 
     return (
         <form className="search-bar" onSubmit={handleSubmit}>
-        <input
-            type="text"
-            placeholder="Search Books"
-            value={query}
-            onChange={handleChange}
-        />
-        <button type="submit"><Search/></button>
+            <input
+                type="text"
+                placeholder="Search Books"
+                value={query}
+                onChange={handleChange}
+            />
+            <button type="submit"><Search/></button>
         </form>
     )
 }
