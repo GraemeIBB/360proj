@@ -1,0 +1,112 @@
+.post-book-container {
+  min-height: calc(100vh - 160px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: #f5f5f5;
+  padding: 80px 0 80px 0;
+}
+
+.post-book-form {
+  display: flex;
+  gap: 40px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 40px 32px;
+  max-width: 700px;
+  width: 100%;
+}
+
+.post-book-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.post-book-fields label {
+  font-weight: 600;
+  color: #b85c5a;
+  margin-bottom: 6px;
+}
+
+.post-book-fields input,
+.post-book-fields select {
+  padding: 10px 12px;
+  border: 2px solid #b85c5a;
+  background-color: #afaeae;
+  border-radius: 5px;
+  font-size: 1em;
+  font-family: inherit;
+  margin-bottom: 8px;
+}
+
+.post-book-fields input:focus,
+.post-book-fields select:focus {
+  outline: none;
+  border-color: #a04a48;
+}
+
+.post-book-photo {
+  border: 2pt solid #a04a48;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px;
+  min-width: 180px;
+  gap: 16px;
+}
+
+.post-book-photo label {
+  font-weight: 600;
+  color: #b85c5a;
+  margin-bottom: 6px;
+}
+
+.post-book-photo input[type="file"] {
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+.post-book-photo-preview {
+  width: 120px;
+  height: 160px;
+  background: #eee;
+  border: 1.5px solid #b85c5a;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.post-book-photo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 700px) {
+  .post-book-form {
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px 8px;
+  }
+  .post-book-photo {
+    min-width: 0;
+    align-items: stretch;
+  }
+  .post-book-photo-preview {
+    margin: 0 auto;
+  }
+}
+
+.post-book-submit-button {
+  margin-top: 24px;
+}
+
