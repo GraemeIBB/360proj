@@ -182,5 +182,25 @@ exports.searchUser = async (req, res) => {
     }
 }
 
+exports.getUserById = async (req, res) => {
+    try {
+        const key = (req.params.id || '').trim();
+
+        // Support both canonical ObjectId lookups and username fallback in one endpoint.
+        // This helps when frontend stores username and/or when stale ids are encountered.
+        const query = mongoose.Types.ObjectId.isValid(key)
+            ? { _id: key }
+            : { username: key };
+
+        const user = await User.findOne(query).select('-password -__v');
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        res.status(200).json(user);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
 
 

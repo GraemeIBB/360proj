@@ -5,6 +5,12 @@ const userController = require('../controller/userController');
 // GET /users
 router.get('/', userController.getAllUsers);
 
+// GET /users/by-username/:id
+router.get('/by-username/:id', userController.getUserById);
+
+// GET /users/:id
+router.get('/:id', userController.getUserById);
+
 // POST /users
 router.post('/', userController.createUser);
 

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Button from './components/Button';
@@ -7,18 +8,22 @@ import './UserProfile.css';
 import { User } from 'lucide-react';
 
 function UserProfile() {
+  const navigate = useNavigate();
   const sidebarRef = useRef(null);
-  //TODO: Replace with actual user data from backend, hardcoded for now
-  const [username, setUsername] = useState('JaxonHay');
-  const [password, setPassword] = useState('••••••••');
-  const [city, setCity] = useState('Kelowna');
   
+  // User profile state - will be populated from backend on mount
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [city, setCity] = useState('');
+  
+  // Edit mode toggles for each field
   const [editingUsername, setEditingUsername] = useState(false);
-  const [editingPassword, setEditingPassword] = useState(false);
   const [editingCity, setEditingCity] = useState(false);
   
+  // Temporary state for field edits before saving
   const [tempUsername, setTempUsername] = useState(username);
-  const [tempPassword, setTempPassword] = useState(password);
   const [tempCity, setTempCity] = useState(city);
 
   // Track what content the sidebar is currently showing
@@ -40,31 +45,27 @@ function UserProfile() {
     setIsSidebarOpen(isOpen);
   };
 
+  // Handle saving username changes
   const handleSaveUsername = () => {
     setUsername(tempUsername);
     setEditingUsername(false);
+    // TODO: Send updated username to backend
   };
 
-  const handleSavePassword = () => {
-    setPassword(tempPassword);
-    setEditingPassword(false);
-  };
-
+  // Handle saving city changes
   const handleSaveCity = () => {
     setCity(tempCity);
     setEditingCity(false);
+    // TODO: Send updated city to backend
   };
 
+  // Discard username changes and revert to original
   const handleCancelUsername = () => {
     setTempUsername(username);
     setEditingUsername(false);
   };
 
-  const handleCancelPassword = () => {
-    setTempPassword(password);
-    setEditingPassword(false);
-  };
-
+  // Discard city changes and revert to original
   const handleCancelCity = () => {
     setTempCity(city);
     setEditingCity(false);
@@ -112,8 +113,81 @@ function UserProfile() {
     };
 
     useEffect(() => {
+        // Fetch user data from backend when component loads
+        const userId = localStorage.getItem('userId');
+      const cachedUsername = localStorage.getItem('username') || '';
+
+      if (!userId) {
+        navigate('/login');
+        return;
+      }
+
+      if (cachedUsername) {
+        setUsername(cachedUsername);
+        setTempUsername(cachedUsername);
+      }
+        
+      // Normalizes API payload shape and hydrates all profile fields in one place.
+      const applyUserData = (data) => {
+        // Some older records use firstname/lastname instead of firstName/lastName.
+        const nextUsername = data.username || cachedUsername || '';
+        const nextCity = data.city || 'Kelowna';
+
+        setUsername(nextUsername);
+        setEmail(data.email || '');
+        setFirstName(data.firstName || data.firstname || '');
+        setLastName(data.lastName || data.lastname || '');
+        setCity(nextCity);
+        setTempUsername(nextUsername);
+        setTempCity(nextCity);
+      };
+
+      // Fallback path when /users/:id fails: load users list and find current user by cached username.
+      // This prevents blank profile fields if userId is stale or missing after refresh/navigation.
+      const fetchByUsernameFallback = () => {
+        if (!cachedUsername) {
+          // No username means we have no safe key to match a user record from the list endpoint.
+          return;
+        }
+
+        fetch('http://localhost:8800/users', { cache: 'no-store' })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`Failed to fetch users list: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(payload => {
+            const users = Array.isArray(payload) ? payload : (payload.users || []);
+            // Match exact username from login/localStorage to pick the correct profile row.
+            const match = users.find((u) => (u.username || '') === cachedUsername);
+            if (match) {
+              applyUserData(match);
+            }
+          })
+          .catch(err => {
+            console.error('Error loading profile from fallback users list:', err);
+          });
+      };
+
+      // Call backend to get user details by ID (excluding password for security)
+      fetch(`http://localhost:8800/users/${userId}`, { cache: 'no-store' })// do not cache, always get fresh data, gaurentees up to date
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Failed to fetch user: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(applyUserData)
+        .catch(err => {
+          console.error('Error loading user profile by id:', err);
+          // If id lookup fails, retry via username list lookup.
+          fetchByUsernameFallback();
+        });
+
+        // Display default sidebar content with user's actual username
         displayDefaultSidebarContent();
-    }, []);
+      }, [navigate]);
 
   return (
     <div className={`user-profile-container${isSidebarOpen ? ' sidebar-open' : ''}`}>
@@ -156,29 +230,24 @@ function UserProfile() {
               </div>
 
               <div className="profile-field">
-                <label>Password:</label>
-                {editingPassword ? (
-                  <div className="edit-field">
-                    <input
-                      type="password"
-                      value={tempPassword}
-                      onChange={(e) => setTempPassword(e.target.value)}
-                    />
-                    <button onClick={handleSavePassword}>Save</button>
-                    <button onClick={handleCancelPassword}>Cancel</button>
-                  </div>
-                ) : (
-                  <div className="display-field">
-                    <span>{password}</span>
-                    <button
-                      className="change-btn"
-                      onClick={() => {
-                        setTempPassword(password);
-                        setEditingPassword(true);
-                      }}
-                    >Change</button>
-                  </div>
-                )}
+                <label>Email:</label>
+                <div className="display-field">
+                  <span>{email}</span>
+                </div>
+              </div>
+
+              <div className="profile-field">
+                <label>First Name:</label>
+                <div className="display-field">
+                  <span>{firstName}</span>
+                </div>
+              </div>
+
+              <div className="profile-field">
+                <label>Last Name:</label>
+                <div className="display-field">
+                  <span>{lastName}</span>
+                </div>
               </div>
 
               <div className="profile-field">

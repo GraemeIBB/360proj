@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -11,6 +11,7 @@ import './Home.css';
 function Home() {
     const navigate = useNavigate();
     const sidebarRef = useRef(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
     const [searchResponseJson, setSearchResponseJson] = useState(null);
     const [noResults, setNoResults] = useState(false);
@@ -22,6 +23,26 @@ function Home() {
     const [priceMin, setPriceMin] = useState('');
     const [priceMax, setPriceMax] = useState('');
     const [yearFilter, setYearFilter] = useState('');
+
+        useEffect(() => {
+            // Reads login state from localStorage and updates React state.
+            const syncLoginState = () => {
+                setIsLoggedIn(Boolean(localStorage.getItem('userId')));
+            };
+
+            // Run once on component mount so the UI reflects current auth state immediately.
+            syncLoginState();
+            // Re-check when tab regains focus (useful after logging in/out on another route/tab).
+            window.addEventListener('focus', syncLoginState);
+            // Re-check when localStorage changes in another tab/window.
+            window.addEventListener('storage', syncLoginState);
+
+            return () => {
+                // Clean up listeners when component unmounts to prevent memory leaks.
+                window.removeEventListener('focus', syncLoginState);
+                window.removeEventListener('storage', syncLoginState);
+            };
+        }, []);
 
     const handleFiltersClick = () => {
       if (sidebarRef.current) {
@@ -93,13 +114,17 @@ function Home() {
 
   return (
     <>
-        <div id="home-header"></div>
-
-        <div id="login-buttons">
-            {/* TODO: make the blue border around these buttons go away */}
-            <div id="sign-in-button"><Button title={ "Sign In" } onClick={() => navigate('/login')} /></div>
-            <div id="sign-up-button"><Button title={ "Sign Up" } onClick={() => navigate('/signup')} /></div>
+        <div id="home-header">
+            <Navbar />
         </div>
+
+                {!isLoggedIn && (
+                    <div id="login-buttons">
+                            {/* TODO: make the blue border around these buttons go away */}
+                            <div id="sign-in-button"><Button title={ "Sign In" } onClick={() => navigate('/login')} /></div>
+                            <div id="sign-up-button"><Button title={ "Sign Up" } onClick={() => navigate('/signup')} /></div>
+                    </div>
+                )}
         
         <Sidebar ref={sidebarRef}>
             <h2>Search Filters</h2>
