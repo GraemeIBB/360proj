@@ -38,10 +38,12 @@ function SignUp() {
       if (!response.ok) {
         const errorMessage = data?.error || data?.details?.[0] || data?.message || 'Failed to create user';
         setStatus({ type: 'error', message: errorMessage });
+        alert(`User creation failed: ${errorMessage}`);
         return;
       }
 
       setStatus({ type: 'success', message: 'User created successfully!' });
+      alert('User created successfully!');
       setFirstName('');
       setLastName('');
       setEmail('');
@@ -49,6 +51,7 @@ function SignUp() {
         setPassword('');
     } catch (err) {
       setStatus({ type: 'error', message: 'Network error. Could not reach server.' });
+      alert('User creation failed: Network error. Could not reach server.');
     }
   };
 
