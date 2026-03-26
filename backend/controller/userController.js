@@ -8,8 +8,8 @@ const createUserSchema = Joi.object({
     firstName: Joi.string().trim().required(),
     lastName: Joi.string().trim().required(),
     email: Joi.string().trim().required(),
-    userName: Joi.string().trim().required(),
-    passWord: Joi.string().trim().required(),
+    username: Joi.string().trim().required(),
+    password: Joi.string().trim().required(),
     isAdmin: Joi.boolean().required(),
 });
 
@@ -18,7 +18,7 @@ const searchUserSchema = Joi.object({
     firstName: Joi.string().trim().optional(),
     lastName: Joi.string().trim().optional(),
     email: Joi.string().trim().optional(),
-    userName: Joi.string().trim().optional(),
+    username: Joi.string().trim().optional(),
     isAdmin: Joi.boolean().optional(),
 });
 
@@ -52,11 +52,11 @@ exports.createUser = async (req, res) => {
         }
 
     try {
-        const { firstName, lastName, email, userName, passWord, isAdmin } = value;
+        const { firstName, lastName, email, username, password, isAdmin } = value;
 
         // Check if user already exists (email or username)
         const existingUser = await User.findOne({
-            $or: [{ email }, { userName }] //check if eitheremail or username
+            $or: [{ email }, { username }] //check if eitheremail or username
         });
 
         if (existingUser) {
@@ -67,14 +67,14 @@ exports.createUser = async (req, res) => {
         }
 
         // Hash password with 10 salt rounds (bcrypt standard)
-        const hashedPassword = await bcrypt.hash(passWord, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create and save new user with hashed password
         const newUser = await User.create({
             firstName,
             lastName,
             email,
-            userName,
+            username,
             password: hashedPassword,  // Store hashed, not plaintext
             admin: isAdmin
         });
@@ -142,7 +142,7 @@ exports.searchUser = async (req, res) => {
             });
         }
 
-        const { q, firstName, lastName, email, userName, isAdmin} = value;
+        const { q, firstName, lastName, email, username, isAdmin} = value;
 
         const query = {};
 
@@ -156,8 +156,8 @@ exports.searchUser = async (req, res) => {
         if (email) {
             query.email = { $regex: email, $options: 'i' };
         }
-        if (userName) {
-            query.userName = { $regex: userName, $options: 'i' };
+        if (username) {
+            query.username = { $regex: username, $options: 'i' };
         }
         if (isAdmin !== undefined) {
             query.admin = isAdmin;
@@ -170,7 +170,7 @@ exports.searchUser = async (req, res) => {
                 { firstName: searchRegex },
                 { lastName: searchRegex },
                 { email: searchRegex },
-                { userName: searchRegex },
+                { username: searchRegex },
             ];
         }
 
