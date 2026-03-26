@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import SearchBar from './components/SearchBar';
@@ -8,6 +9,7 @@ import Button from './components/Button';
 import './Home.css';
 
 function Home() {
+    const navigate = useNavigate();
     const sidebarRef = useRef(null);
     const [searchResults, setSearchResults] = useState([]);
     const [searchResponseJson, setSearchResponseJson] = useState(null);
@@ -94,10 +96,9 @@ function Home() {
         <div id="home-header"></div>
 
         <div id="login-buttons">
-            {/* TODO: make the buttons work */}
             {/* TODO: make the blue border around these buttons go away */}
-            <div id="sign-in-button"><Button title={ "Sign In" } /></div>
-            <div id="sign-up-button"><Button title={ "Sign Up" } /></div>
+            <div id="sign-in-button"><Button title={ "Sign In" } onClick={() => navigate('/login')} /></div>
+            <div id="sign-up-button"><Button title={ "Sign Up" } onClick={() => navigate('/signup')} /></div>
         </div>
         
         <Sidebar ref={sidebarRef}>

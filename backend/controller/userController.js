@@ -10,7 +10,7 @@ const createUserSchema = Joi.object({
     email: Joi.string().trim().required(),
     username: Joi.string().trim().required(),
     password: Joi.string().trim().required(),
-    isAdmin: Joi.boolean().required(),
+    isAdmin: Joi.boolean().optional().default(false),
 });
 
 const searchUserSchema = Joi.object({

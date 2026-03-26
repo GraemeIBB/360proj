@@ -4,9 +4,9 @@ import Footer from './components/Footer';
 import Button from './components/Button';
 import './Login.css';
 
-function Temp() {
-  const [firstname, setFirstname] = useState('');
-  const [lastname, setLastname] = useState('');
+function SignUp() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -18,24 +18,25 @@ function Temp() {
     setStatus(null);
 
     try {
-      const response = await fetch('http://localhost:8000/users', {
+      const response = await fetch('http://localhost:8800/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ firstname, lastname, email, username, password }),
+        body: JSON.stringify({ firstName, lastName, email, username, password }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setStatus({ type: 'error', message: data.message || 'Failed to create user' });
+        const errorMessage = data?.error || data?.details?.[0] || data?.message || 'Failed to create user';
+        setStatus({ type: 'error', message: errorMessage });
         return;
       }
 
       setStatus({ type: 'success', message: 'User created successfully!' });
-      setFirstname('');
-      setLastname('');
+      setFirstName('');
+      setLastName('');
       setEmail('');
         setUsername('');
         setPassword('');
@@ -59,24 +60,24 @@ function Temp() {
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="firstname">First name</label>
+              <label htmlFor="firstName">First name</label>
               <input
-                id="firstname"
+                id="firstName"
                 type="text"
-                value={firstname}
-                onChange={(e) => setFirstname(e.target.value)}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 placeholder="First name"
                 required
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="lastname">Last name</label>
+              <label htmlFor="lastName">Last name</label>
               <input
-                id="lastname"
+                id="lastName"
                 type="text"
-                value={lastname}
-                onChange={(e) => setLastname(e.target.value)}
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
                 placeholder="Last name"
                 required
               />
@@ -127,4 +128,4 @@ function Temp() {
   );
 }
 
-export default Temp;
+export default SignUp;

@@ -6,6 +6,7 @@ import Home from './Home.jsx'
 import Login from './Login.jsx'
 import PostBook from './PostBook.jsx'
 import ViewBook from './ViewBook.jsx'
+import SignUp from './Sign Up.jsx'
 
 
 createRoot(document.getElementById('root')).render(
@@ -14,6 +15,7 @@ createRoot(document.getElementById('root')).render(
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
         <Route path="/post-book" element={<PostBook />} />
         <Route path="/books/:id" element={<ViewBook />} />
       </Routes>
