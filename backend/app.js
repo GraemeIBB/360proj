@@ -4,6 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
+require('./loadEnvironment');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -14,13 +15,13 @@ var app = express();
 const mongoose = require('mongoose');
 app.use(express.json());
 
-mongoose.connect(process.env.ATLAS_URI)
-.then(() => console.log("MongoDB Connected"))
-.catch(err => console.log(err));
-
-app.listen(8800, () => {
-  console.log("Server running on port 8800");
-});
+if (!process.env.ATLAS_URI) {
+  console.error('Missing ATLAS_URI. Create backend/.env with ATLAS_URI=<your MongoDB connection string>.');
+} else {
+  mongoose.connect(process.env.ATLAS_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log(err));
+}
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
