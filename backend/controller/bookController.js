@@ -9,6 +9,7 @@ const createBookSchema = Joi.object({
     description: Joi.string().trim().required(),
     publishedDate: Joi.date().optional(),
     isbn: Joi.string().trim().optional(),
+    genre: Joi.string().trim().valid("fiction", "non-fiction", "mystery", "romance", "sci-fi", "fantasy", "other").optional(),
     condition: Joi.string().valid("new", "like new", "good", "fair").optional(),
     price: Joi.number().min(0).required(),
 });
@@ -17,6 +18,7 @@ const createBookSchema = Joi.object({
 const searchBooksSchema = Joi.object({
     title: Joi.string().trim().optional(),
     isbn: Joi.string().trim().optional(),
+    genre: Joi.string().trim().valid("fiction", "non-fiction", "mystery", "romance", "sci-fi", "fantasy", "other").optional(),
     minPrice: Joi.number().min(0).optional(),
     maxPrice: Joi.number().min(0).optional(),
     startDate: Joi.date().optional(),
@@ -52,6 +54,7 @@ exports.createBook = async (req, res) => {
       description,
       publishedDate,
       isbn,
+            genre,
       condition,
       price
         } = value; // Use validated/sanitized request values.
@@ -62,6 +65,7 @@ exports.createBook = async (req, res) => {
       description,
       publishedDate,
       isbn,
+    genre,
       condition,
       price,
             // Owner comes from authenticated user context.
@@ -130,7 +134,7 @@ exports.searchBooks = async (req, res) => {
             });
         }
 
-        const { title, isbn, minPrice, maxPrice, startDate, endDate, author } = value;
+        const { title, isbn, genre, minPrice, maxPrice, startDate, endDate, author } = value;
 
         if (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice) {
             return res.status(400).json({
@@ -153,6 +157,9 @@ exports.searchBooks = async (req, res) => {
             }
             if (isbn) {
                 query.isbn = isbn; //exact match for isbn
+            }
+            if (genre) {
+                query.genre = genre; //exact match for normalized genre values
             }
             // Price range filter.
             if(minPrice || maxPrice){

@@ -9,6 +9,7 @@ import './PostBook.css';
 function PostBook() {
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
+  const [genre, setGenre] = useState('');
   const [condition, setCondition] = useState('');
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -56,6 +57,23 @@ function PostBook() {
               onChange={e => setPrice(e.target.value)}
               required
             />
+
+            <label htmlFor="book-genre">Genre</label>
+            <select
+              id="book-genre"
+              value={genre}
+              onChange={e => setGenre(e.target.value)}
+              required
+            >
+              <option value="">Select</option>
+              <option value="fiction">Fiction</option>
+              <option value="non-fiction">Non-Fiction</option>
+              <option value="mystery">Mystery</option>
+              <option value="romance">Romance</option>
+              <option value="sci-fi">Science Fiction</option>
+              <option value="fantasy">Fantasy</option>
+              <option value="other">Other</option>
+            </select>
 
             <label htmlFor="book-condition">Condition</label>
             <select

@@ -40,7 +40,7 @@ function Home() {
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/search?${query}`);
+                const response = await fetch(`http://localhost:8800/books/search?${query}`);
                 const data = await response.json();
                 setSearchResponseJson(data);
 
@@ -74,7 +74,7 @@ function Home() {
                 return;
             }
 
-            await runSearch({ q: trimmedTerm });
+            await runSearch({ title: trimmedTerm });
         };
 
         const handleSidebarSearch = async () => {
