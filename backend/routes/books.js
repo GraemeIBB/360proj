@@ -12,6 +12,9 @@ router.get('/', bookController.getAllBooks);
 // SEARCH BOOKS
 router.get('/search', bookController.searchBooks);
 
+//get book by id
+router.get('/:id', bookController.getBookById);
+
 // DELETE BOOK
 router.delete('/:id', bookController.deleteBook);
 
