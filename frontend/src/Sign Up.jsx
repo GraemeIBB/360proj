@@ -26,7 +26,14 @@ function SignUp() {
         body: JSON.stringify({ firstName, lastName, email, username, password }),
       });
 
-      const data = await response.json();
+      // Backend may return HTML/text on server errors, so parse safely.
+      const rawBody = await response.text();
+      let data = {};
+      try {
+        data = rawBody ? JSON.parse(rawBody) : {};
+      } catch {
+        data = { message: rawBody };
+      }
 
       if (!response.ok) {
         const errorMessage = data?.error || data?.details?.[0] || data?.message || 'Failed to create user';
