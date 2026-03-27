@@ -8,9 +8,14 @@ function Navbar() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    fetch("http://localhost:8080/notif")
+    // TODO: Implement notifications endpoint. For now, suppress the fetch error.
+    fetch("http://localhost:8800/notif")
       .then(res => res.json())
       .then(data => setNotifs(data))
+      .catch(err => {
+        // Silently fail if notifications endpoint doesn't exist yet.
+        console.debug('Notifications unavailable:', err.message);
+      });
   }, [])
 
   useEffect(() => {

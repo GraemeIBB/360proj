@@ -8,11 +8,14 @@ import './PostBook.css';
 
 function PostBook() {
   const [title, setTitle] = useState('');
+  const [author, setAuthor] = useState('');
+  const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [genre, setGenre] = useState('');
   const [condition, setCondition] = useState('');
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [status, setStatus] = useState(null);
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -26,10 +29,70 @@ function PostBook() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Submit book data to backend
-    alert('Book posted!');
+
+    // The app stores login identity in localStorage after /login succeeds.
+    const owner = localStorage.getItem('userId');
+    if (!owner) {
+      setStatus({ type: 'error', message: 'You must be logged in to post a book.' });
+      alert('You must be logged in to post a book.');
+      return;
+    }
+
+    setStatus(null);
+
+    try {
+      const response = await fetch('http://localhost:8800/books', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          author,
+          description,
+          price,
+          genre,
+          condition,
+          // Send owner id explicitly because the backend currently does not attach req.user for create.
+          owner,
+          // Use data URL preview as a temporary image transport until multipart upload is added.
+          coverImage: photoPreview,
+        }),
+      });
+
+      // Backend may return HTML/text on server errors, so parse safely.
+      const rawBody = await response.text();
+      let data = {};
+      try {
+        data = rawBody ? JSON.parse(rawBody) : {};
+      } catch {
+        data = { message: rawBody };
+      }
+
+      if (!response.ok) {
+        const errorMessage = data?.error || data?.details?.[0] || data?.message || 'Failed to create book post';
+        setStatus({ type: 'error', message: errorMessage });
+        alert(`Book post creation failed: ${errorMessage}`);
+        return;
+      }
+
+      setStatus({ type: 'success', message: 'Book post created successfully!' });
+      alert('Book post created successfully!');
+      setTitle('');
+      setAuthor('');
+      setDescription('');
+      setPrice('');
+      setGenre('');
+      setCondition('');
+      // Clear both file input state and preview after successful post.
+      setPhoto(null);
+      setPhotoPreview(null);
+    } catch (err) {
+      setStatus({ type: 'error', message: 'Network error. Could not reach server.' });
+      alert('Book creation failed: Network error. Could not reach server.');
+    }
   };
 
   return (
@@ -38,12 +101,36 @@ function PostBook() {
       <div className="post-book-container">
         <form className="post-book-form" onSubmit={handleSubmit}>
           <div className="post-book-fields">
+            {status && (
+              <div className={`status-message ${status.type}`}>
+                {status.message}
+              </div>
+            )}
+
             <label htmlFor="book-title">Book Title</label>
             <input
               id="book-title"
               type="text"
               value={title}
               onChange={e => setTitle(e.target.value)}
+              required
+            />
+
+            <label htmlFor="book-author">Author</label>
+            <input
+              id="book-author"
+              type="text"
+              value={author}
+              onChange={e => setAuthor(e.target.value)}
+              required
+            />
+
+            <label htmlFor="book-description">Description</label>
+            <textarea
+              id="book-description"
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              rows={3}
               required
             />
 
@@ -84,8 +171,9 @@ function PostBook() {
             >
               <option value="">Select</option>
               <option value="new">New</option>
-              <option value="lightly used">Lightly Used</option>
-              <option value="worn">Worn</option>
+              <option value="like new">Like New</option>
+              <option value="good">Good</option>
+              <option value="fair">Fair</option>
             </select>
           </div>
           <div className="post-book-photo">
@@ -117,6 +205,8 @@ function PostBook() {
       <Footer />
     </>
   );
+
 }
+
 
 export default PostBook;

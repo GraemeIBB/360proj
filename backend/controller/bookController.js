@@ -48,7 +48,7 @@ exports.createBook = async (req, res) => {
             });
         }
 
-    const {
+        const {
       title,
       author,
       description,
@@ -59,19 +59,26 @@ exports.createBook = async (req, res) => {
       price
         } = value; // Use validated/sanitized request values.
 
+        // Prefer authenticated identity when available, otherwise allow explicit owner id from request payload.
+        const ownerId = req.user?.id || req.body.owner || req.body.userId;
+        if (!ownerId || !mongoose.Types.ObjectId.isValid(ownerId)) {
+            return res.status(400).json({ error: "Missing or invalid owner id" });
+        }
+
+        // Support both multipart uploads (req.file) and JSON-based coverImage fallback from frontend.
+        const coverImage = req.file ? req.file.path : (req.body.coverImage || null);
+
     const newBook = await Book.create({ // Wait for the create operation to complete.
       title,
       author,
       description,
       publishedDate,
       isbn,
-    genre,
+            genre,
       condition,
       price,
-            // Owner comes from authenticated user context.
-      owner: req.user.id, 
-            // Save uploaded image path when a file was attached.
-      coverImage: req.file ? req.file.path : null
+            owner: ownerId,
+            coverImage,
     });
 
         res.status(201).json(newBook); // 201 Created + created book payload.
@@ -83,6 +90,10 @@ exports.createBook = async (req, res) => {
 
 exports.deleteBook = async (req, res) => {
     try{
+        if (!req.user) {
+            return res.status(401).json({ error: "Authentication required" });
+        }
+
         // Reject malformed ids before querying MongoDB.
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
             return res.status(400).json({ error: "Invalid book id" });

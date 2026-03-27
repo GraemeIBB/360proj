@@ -232,7 +232,11 @@ function Home() {
 
             <div id="home-buttons">
                 <Button title={"Filters"} onClick={handleFiltersClick} />
-                <Button title={"Hot Books"} /></div>
+                <Button title={"Hot Books"} />
+                {isLoggedIn && (
+                    <Button title={"Post Book"} onClick={() => navigate('/post-book')} />
+                )}
+            </div>
         </div>
 
         <Footer />
