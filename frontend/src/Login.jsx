@@ -5,7 +5,7 @@ import Footer from './components/Footer';
 import Button from './components/Button';
 import './Login.css';
 
-function Login() {
+     function  Login () {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
@@ -21,16 +21,23 @@ function Login() {
             },
             body: JSON.stringify({ username, password })
         })
-        .then(response => {
+        .then(async response => {
             if (response.ok) {
+                const data = await response.json();
+                // Store the user ID from login response so profile page can fetch the user data
+                localStorage.setItem('userId', data.userId);
+                localStorage.setItem('username', data.username || '');
+                alert('Login successful!');
                 navigate('/');
             } else {
-                return response.json().then(data => alert('Login failed: ' + data.message));
+                const data = await response.json();
+                const errorMsg = data?.message || 'Invalid username or password';
+                alert('Login failed: ' + errorMsg);
             }
         })
         .catch(error => {
             console.log('Login error:', error);
-            alert('An error occurred during login.');
+            alert('Login failed: Network error. Could not reach server.');
         });
     };
 

@@ -4,39 +4,30 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
+require('./loadEnvironment');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var searchRouter = require('./routes/server')
-
+var booksRouter = require("./routes/books");
 var app = express();
 
 // database connection
 const mongoose = require('mongoose');
-app.use(express.json());
 
-mongoose.connect(process.env.ATLAS_URI)
-.then(() => console.log("MongoDB Connected"))
-.catch(err => console.log(err));
-
-app.listen(8800, () => {
-  console.log("Server running on port 8800");
-});
+if (!process.env.ATLAS_URI) {
+  console.error('Missing ATLAS_URI. Create backend/.env with ATLAS_URI=<your MongoDB connection string>.');
+} else {
+  mongoose.connect(process.env.ATLAS_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log(err));
+}
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-// Enable CORS
+// Enable CORS globally and set headers before any routes.
 app.use(cors());
-
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Enable CORS
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -47,9 +38,15 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/', searchRouter)
+app.use("/books", booksRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

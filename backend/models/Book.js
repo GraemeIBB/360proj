@@ -23,6 +23,11 @@ const bookSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    genre: {
+      type: String,
+      enum: ["fiction", "non-fiction", "mystery", "romance", "sci-fi", "fantasy", "other"],
+      required: false,
+    },
     condition: {
       type: String,
       enum: ["new", "like new", "good", "fair"],

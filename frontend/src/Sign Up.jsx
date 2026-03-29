@@ -4,10 +4,11 @@ import Footer from './components/Footer';
 import Button from './components/Button';
 import './Login.css';
 
-function Temp() {
-  const [firstname, setFirstname] = useState('');
-  const [lastname, setLastname] = useState('');
+function SignUp() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [location, setLocation] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState(null);
@@ -18,30 +19,71 @@ function Temp() {
     setStatus(null);
 
     try {
-      const response = await fetch('http://localhost:8000/users', {
+      const response = await fetch('http://localhost:8800/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ firstname, lastname, email, username, password }),
+        body: JSON.stringify({ firstName, lastName, email, location, username, password }),
       });
 
-      const data = await response.json();
+      // Backend may return HTML/text on server errors, so parse safely.
+      const rawBody = await response.text();
+      let data = {};
+      try {
+        data = rawBody ? JSON.parse(rawBody) : {};
+      } catch {
+        data = { message: rawBody };
+      }
 
       if (!response.ok) {
-        setStatus({ type: 'error', message: data.message || 'Failed to create user' });
+        const errorMessage = data?.error || data?.details?.[0] || data?.message || 'Failed to create user';
+        setStatus({ type: 'error', message: errorMessage });
+        alert(`User creation failed: ${errorMessage}`);
         return;
       }
 
       setStatus({ type: 'success', message: 'User created successfully!' });
-      setFirstname('');
-      setLastname('');
-      setEmail('');
+      alert('User created successfully!');
+
+        setFirstName('');
+        setLastName('');
+        setEmail('');
+        setLocation('');
         setUsername('');
         setPassword('');
+
     } catch (err) {
       setStatus({ type: 'error', message: 'Network error. Could not reach server.' });
+      alert('User creation failed: Network error. Could not reach server.');
     }
+
+    // log in the user after signup
+        fetch('http://localhost:8800/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+        })
+        .then(async response => {
+            if (response.ok) {
+                const data = await response.json();
+                // Store the user ID from login response so profile page can fetch the user data
+                localStorage.setItem('userId', data.userId);
+                localStorage.setItem('username', data.username || '');
+                alert('Login successful!');
+                navigate('/');
+            } else {
+                const data = await response.json();
+                const errorMsg = data?.message || 'Invalid username or password';
+                alert('Login failed: ' + errorMsg);
+            }
+        })
+        .catch(error => {
+            console.log('Login error:', error);
+            alert('Login failed: Network error. Could not reach server.');
+        });
   };
 
   return (
@@ -59,24 +101,24 @@ function Temp() {
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="firstname">First name</label>
+              <label htmlFor="firstName">First name</label>
               <input
-                id="firstname"
+                id="firstName"
                 type="text"
-                value={firstname}
-                onChange={(e) => setFirstname(e.target.value)}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 placeholder="First name"
                 required
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="lastname">Last name</label>
+              <label htmlFor="lastName">Last name</label>
               <input
-                id="lastname"
+                id="lastName"
                 type="text"
-                value={lastname}
-                onChange={(e) => setLastname(e.target.value)}
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
                 placeholder="Last name"
                 required
               />
@@ -90,6 +132,18 @@ function Temp() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="email@example.com"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="location">Your Location</label>
+              <input
+                id="location"
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="ex. Vancouver"
                 required
               />
             </div>
@@ -127,4 +181,4 @@ function Temp() {
   );
 }
 
-export default Temp;
+export default SignUp;

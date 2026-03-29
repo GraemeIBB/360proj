@@ -97,4 +97,19 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    pointer-events: none;
+}
+
+.navbar-logout {
+    border: 1px solid white;
+    background: transparent;
+    color: white;
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.navbar-logout:hover {
+    opacity: 0.85;
 }

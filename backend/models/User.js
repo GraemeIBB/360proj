@@ -18,7 +18,12 @@ const userSchema = new mongoose.Schema({
         lowercase: true,
         unique: true,
     },
-    userName: {
+    location: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    username: {
         type: String,
         required: true,
         trim: true,

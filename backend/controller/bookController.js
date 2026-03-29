@@ -9,6 +9,7 @@ const createBookSchema = Joi.object({
     description: Joi.string().trim().required(),
     publishedDate: Joi.date().optional(),
     isbn: Joi.string().trim().optional(),
+    genre: Joi.string().trim().valid("fiction", "non-fiction", "mystery", "romance", "sci-fi", "fantasy", "other").optional(),
     condition: Joi.string().valid("new", "like new", "good", "fair").optional(),
     price: Joi.number().min(0).required(),
 });
@@ -17,6 +18,7 @@ const createBookSchema = Joi.object({
 const searchBooksSchema = Joi.object({
     title: Joi.string().trim().optional(),
     isbn: Joi.string().trim().optional(),
+    genre: Joi.string().trim().valid("fiction", "non-fiction", "mystery", "romance", "sci-fi", "fantasy", "other").optional(),
     minPrice: Joi.number().min(0).optional(),
     maxPrice: Joi.number().min(0).optional(),
     startDate: Joi.date().optional(),
@@ -46,15 +48,25 @@ exports.createBook = async (req, res) => {
             });
         }
 
-    const {
+        const {
       title,
       author,
       description,
       publishedDate,
       isbn,
+            genre,
       condition,
       price
         } = value; // Use validated/sanitized request values.
+
+        // Prefer authenticated identity when available, otherwise allow explicit owner id from request payload.
+        const ownerId = req.user?.id || req.body.owner || req.body.userId;
+        if (!ownerId || !mongoose.Types.ObjectId.isValid(ownerId)) {
+            return res.status(400).json({ error: "Missing or invalid owner id" });
+        }
+
+        // Support both multipart uploads (req.file) and JSON-based coverImage fallback from frontend.
+        const coverImage = req.file ? req.file.path : (req.body.coverImage || null);
 
     const newBook = await Book.create({ // Wait for the create operation to complete.
       title,
@@ -62,12 +74,11 @@ exports.createBook = async (req, res) => {
       description,
       publishedDate,
       isbn,
+            genre,
       condition,
       price,
-            // Owner comes from authenticated user context.
-      owner: req.user.id, 
-            // Save uploaded image path when a file was attached.
-      coverImage: req.file ? req.file.path : null
+            owner: ownerId,
+            coverImage,
     });
 
         res.status(201).json(newBook); // 201 Created + created book payload.
@@ -79,6 +90,10 @@ exports.createBook = async (req, res) => {
 
 exports.deleteBook = async (req, res) => {
     try{
+        if (!req.user) {
+            return res.status(401).json({ error: "Authentication required" });
+        }
+
         // Reject malformed ids before querying MongoDB.
         if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
             return res.status(400).json({ error: "Invalid book id" });
@@ -110,6 +125,21 @@ exports.getAllBooks = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 }
+exports.getBookById = async (req, res) => {
+    try{
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ error: "Invalid book id" });
+        }
+        const book = await Book.findById(req.params.id).populate('owner', 'username email');
+        if(!book){
+            return res.status(404).json({ error: "Book not found" });
+        }
+        
+        res.status(200).json(book);
+    }catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+}
 exports.searchBooks = async (req, res) => {
     try{
         // Validate search filters before constructing query.
@@ -130,7 +160,7 @@ exports.searchBooks = async (req, res) => {
             });
         }
 
-        const { title, isbn, minPrice, maxPrice, startDate, endDate, author } = value;
+        const { title, isbn, genre, minPrice, maxPrice, startDate, endDate, author } = value;
 
         if (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice) {
             return res.status(400).json({
@@ -153,6 +183,9 @@ exports.searchBooks = async (req, res) => {
             }
             if (isbn) {
                 query.isbn = isbn; //exact match for isbn
+            }
+            if (genre) {
+                query.genre = genre; //exact match for normalized genre values
             }
             // Price range filter.
             if(minPrice || maxPrice){

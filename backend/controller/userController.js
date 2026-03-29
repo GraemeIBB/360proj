@@ -8,19 +8,28 @@ const createUserSchema = Joi.object({
     firstName: Joi.string().trim().required(),
     lastName: Joi.string().trim().required(),
     email: Joi.string().trim().required(),
-    userName: Joi.string().trim().required(),
-    passWord: Joi.string().trim().required(),
-    isAdmin: Joi.boolean().required(),
+    location: Joi.string().trim().required(),
+    username: Joi.string().trim().required(),
+    password: Joi.string().trim().required(),
+    isAdmin: Joi.boolean().optional().default(false),
 });
 
 const searchUserSchema = Joi.object({
     q: Joi.string().trim().optional(),
     firstName: Joi.string().trim().optional(),
     lastName: Joi.string().trim().optional(),
+    location: Joi.string().trim().optional(),
     email: Joi.string().trim().optional(),
-    userName: Joi.string().trim().optional(),
+    username: Joi.string().trim().optional(),
     isAdmin: Joi.boolean().optional(),
 });
+
+const updateUserSchema = Joi.object({
+    username: Joi.string().trim(),
+    email: Joi.string().trim().email(),
+    password: Joi.string().trim(),
+    location: Joi.string().trim(),
+}).min(1); // At least one field required
 
 exports.getAllUsers = async (req, res) => {
     try {
@@ -52,11 +61,11 @@ exports.createUser = async (req, res) => {
         }
 
     try {
-        const { firstName, lastName, email, userName, passWord, isAdmin } = value;
+        const { firstName, lastName, email, location, username, password, isAdmin } = value;
 
         // Check if user already exists (email or username)
         const existingUser = await User.findOne({
-            $or: [{ email }, { userName }] //check if eitheremail or username
+            $or: [{ email }, { username }] //check if eitheremail or username
         });
 
         if (existingUser) {
@@ -67,14 +76,15 @@ exports.createUser = async (req, res) => {
         }
 
         // Hash password with 10 salt rounds (bcrypt standard)
-        const hashedPassword = await bcrypt.hash(passWord, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create and save new user with hashed password
         const newUser = await User.create({
             firstName,
             lastName,
             email,
-            userName,
+            location,
+            username,
             password: hashedPassword,  // Store hashed, not plaintext
             admin: isAdmin
         });
@@ -142,7 +152,7 @@ exports.searchUser = async (req, res) => {
             });
         }
 
-        const { q, firstName, lastName, email, userName, isAdmin} = value;
+        const { q, firstName, lastName, email, location, username, isAdmin} = value;
 
         const query = {};
 
@@ -156,8 +166,11 @@ exports.searchUser = async (req, res) => {
         if (email) {
             query.email = { $regex: email, $options: 'i' };
         }
-        if (userName) {
-            query.userName = { $regex: userName, $options: 'i' };
+        if (username) {
+            query.username = { $regex: username, $options: 'i' };
+        }
+        if (location) {
+            query.location = { $regex: location, $options: 'i' };
         }
         if (isAdmin !== undefined) {
             query.admin = isAdmin;
@@ -170,7 +183,8 @@ exports.searchUser = async (req, res) => {
                 { firstName: searchRegex },
                 { lastName: searchRegex },
                 { email: searchRegex },
-                { userName: searchRegex },
+                { username: searchRegex },
+                { location: searchRegex },
             ];
         }
 
@@ -181,6 +195,79 @@ exports.searchUser = async (req, res) => {
         return res.status(500).json({ error: err.message });
     }
 }
+
+exports.updateUser = async (req, res) => {
+    console.log('Update user request params:', req.params);
+    console.log('Update user request body:', req.body);
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: 'Invalid user id' }); //400, invalid request
+    }
+
+    // Validate input
+    const { error, value } = updateUserSchema.validate(req.body, {
+        abortEarly: false,
+        stripUnknown: true,
+    });
+    if (error) {
+        return res.status(400).json({
+            error: 'Invalid update payload',
+            details: error.details.map((d) => d.message),
+        });
+    }
+
+    // If password is being updated, hash it
+    if (value.password) {
+        value.password = await bcrypt.hash(value.password, 10);
+    }
+
+    try {
+        // Only allow updating allowed fields
+        const allowedFields = ['username', 'email', 'password', 'location'];
+        const update = {};
+        for (const key of allowedFields) {
+            if (value[key] !== undefined) update[key] = value[key];
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            id,
+            { $set: update },
+            { new: true, runValidators: true, context: 'query' }
+        ).select('-password -__v');
+
+        if (!updatedUser) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.status(200).json({ message: 'User updated', user: updatedUser });
+    } catch (err) {
+        // Handle duplicate value errors (err code 11000, e.g. username/email taken)
+        if (err.code === 11000) {
+            const field = Object.keys(err.keyPattern)[0];
+            return res.status(409).json({ error: `${field} already in use` });  //409, conflict, duplicate data
+        }
+        res.status(500).json({ error: err.message });   //500, server error
+    }
+};
+
+exports.getUserById = async (req, res) => {
+    try {
+        const key = (req.params.id || '').trim();
+
+        // Support both canonical ObjectId lookups and username fallback in one endpoint.
+        // This helps when frontend stores username and/or when stale ids are encountered.
+        const query = mongoose.Types.ObjectId.isValid(key)
+            ? { _id: key }
+            : { username: key };
+
+        const user = await User.findOne(query).select('-password -__v');
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        res.status(200).json(user);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
 
 
 
