@@ -8,6 +8,7 @@ function SignUp() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [location, setLocation] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState(null);
@@ -23,7 +24,7 @@ function SignUp() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ firstName, lastName, email, username, password }),
+        body: JSON.stringify({ firstName, lastName, email, location, username, password }),
       });
 
       // Backend may return HTML/text on server errors, so parse safely.
@@ -44,15 +45,45 @@ function SignUp() {
 
       setStatus({ type: 'success', message: 'User created successfully!' });
       alert('User created successfully!');
-      setFirstName('');
-      setLastName('');
-      setEmail('');
+
+        setFirstName('');
+        setLastName('');
+        setEmail('');
+        setLocation('');
         setUsername('');
         setPassword('');
+
     } catch (err) {
       setStatus({ type: 'error', message: 'Network error. Could not reach server.' });
       alert('User creation failed: Network error. Could not reach server.');
     }
+
+    // log in the user after signup
+        fetch('http://localhost:8800/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+        })
+        .then(async response => {
+            if (response.ok) {
+                const data = await response.json();
+                // Store the user ID from login response so profile page can fetch the user data
+                localStorage.setItem('userId', data.userId);
+                localStorage.setItem('username', data.username || '');
+                alert('Login successful!');
+                navigate('/');
+            } else {
+                const data = await response.json();
+                const errorMsg = data?.message || 'Invalid username or password';
+                alert('Login failed: ' + errorMsg);
+            }
+        })
+        .catch(error => {
+            console.log('Login error:', error);
+            alert('Login failed: Network error. Could not reach server.');
+        });
   };
 
   return (
@@ -101,6 +132,18 @@ function SignUp() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="email@example.com"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="location">Your Location</label>
+              <input
+                id="location"
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="ex. Vancouver"
                 required
               />
             </div>

@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -14,63 +15,127 @@ function UserProfile() {
   // User profile state - will be populated from backend on mount
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [location, setLocation] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [city, setCity] = useState('');
-  
+
   // Edit mode toggles for each field
   const [editingUsername, setEditingUsername] = useState(false);
-  const [editingCity, setEditingCity] = useState(false);
-  
-  // Temporary state for field edits before saving
-  const [tempUsername, setTempUsername] = useState(username);
-  const [tempCity, setTempCity] = useState(city);
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [editingPassword, setEditingPassword] = useState(false);
+  const [editingLocation, setEditingLocation] = useState(false);
 
-  // Track what content the sidebar is currently showing
-  const [viewMode, setViewMode] = useState('default');
+  // Temporary state for edits
+  const [tempUsername, setTempUsername] = useState('');
+  const [tempEmail, setTempEmail] = useState('');
+  const [tempPassword, setTempPassword] = useState('');
+  const [tempLocation, setTempLocation] = useState('');
+
+  // Sidebar state
   const [sidebarContent, setSidebarContent] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const displayDefaultSidebarContent = () => {
-    setViewMode('default');
-    setSidebarContent(
-    <div>
-        <h2>Welcome, {username}!</h2>
-        <p>Use the sidebar to navigate your profile settings and actions.</p>
-    </div>
-    );
+  // Load user data on mount
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    const cachedUsername = localStorage.getItem('username') || '';
+    if (!userId) {
+      navigate('/login');
+      return;
+    }
+
+    // Helper to apply user data
+    const applyUserData = (data) => {
+      setUsername(data.username || cachedUsername || '');
+      setEmail(data.email || '');
+      setLocation(data.location || '');
+      setFirstName(data.firstName || data.firstname || '');
+      setLastName(data.lastName || data.lastname || '');
+      setTempUsername(data.username || cachedUsername || '');
+      setTempEmail(data.email || '');
+      setTempPassword('');
+      setTempLocation(data.location || '');
+    };
+
+    // Fallback fetch by username
+    const fetchByUsernameFallback = () => {
+      if (!cachedUsername) return;
+      fetch('http://localhost:8800/users', { cache: 'no-store' })
+        .then(res => res.json())
+        .then(payload => {
+          const users = Array.isArray(payload) ? payload : (payload.users || []);
+          const match = users.find((u) => (u.username || '') === cachedUsername);
+          if (match) applyUserData(match);
+        })
+        .catch(() => {});
+    };
+
+    fetch(`http://localhost:8800/users/${userId}`, { cache: 'no-store' })
+      .then(res => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then(applyUserData)
+      .catch(fetchByUsernameFallback);
+  }, [navigate]);
+
+  // Sidebar toggle
+  const handleSidebarToggle = (isOpen) => setIsSidebarOpen(isOpen);
+
+
+  // Save handlers (with backend update)
+  const userId = localStorage.getItem('userId');
+  const [statusMsg, setStatusMsg] = useState('');
+
+  // Helper to update user field
+  const updateUserField = async (field, value) => {
+    if (!userId) return;
+    setStatusMsg('');
+    try {
+      const res = await fetch(`http://localhost:8800/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: value })
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || data.message || 'Update failed');
+      }
+      setStatusMsg('Profile updated!');
+    } catch (err) {
+      setStatusMsg(err.message || 'Update failed');
+    }
   };
 
-  const handleSidebarToggle = (isOpen) => {
-    setIsSidebarOpen(isOpen);
-  };
-
-  // Handle saving username changes
-  const handleSaveUsername = () => {
+  const handleSaveUsername = async () => {
+    await updateUserField('username', tempUsername);
     setUsername(tempUsername);
     setEditingUsername(false);
-    // TODO: Send updated username to backend
+  };
+  const handleSaveEmail = async () => {
+    await updateUserField('email', tempEmail);
+    setEmail(tempEmail);
+    setEditingEmail(false);
+  };
+  const handleSavePassword = async () => {
+    await updateUserField('password', tempPassword);
+    setPassword(tempPassword);
+    setEditingPassword(false);
+  };
+  const handleSaveLocation = async () => {
+    await updateUserField('location', tempLocation);
+    setLocation(tempLocation);
+    setEditingLocation(false);
   };
 
-  // Handle saving city changes
-  const handleSaveCity = () => {
-    setCity(tempCity);
-    setEditingCity(false);
-    // TODO: Send updated city to backend
-  };
+  // Cancel handlers
+  const handleCancelUsername = () => { setTempUsername(username); setEditingUsername(false); };
+  const handleCancelEmail = () => { setTempEmail(email); setEditingEmail(false); };
+  const handleCancelPassword = () => { setTempPassword(''); setEditingPassword(false); };
+  const handleCancelLocation = () => { setTempLocation(location); setEditingLocation(false); };
 
-  // Discard username changes and revert to original
-  const handleCancelUsername = () => {
-    setTempUsername(username);
-    setEditingUsername(false);
-  };
-
-  // Discard city changes and revert to original
-  const handleCancelCity = () => {
-    setTempCity(city);
-    setEditingCity(false);
-  };
-
+  // Sidebar content actions (unchanged)
   const handleViewTransactionHistory = () => {
     // TODO: implement viewing the transaction history in the sidebar
     setSidebarContent(
@@ -106,88 +171,10 @@ function UserProfile() {
     }
     setViewMode('bookPostings');
   };
-
-    const handleChangeProfilePicture = () => {
-        // TODO: Implement profile picture change functionality
-        console.log('Change profile picture');
-    };
-
-    useEffect(() => {
-        // Fetch user data from backend when component loads
-        const userId = localStorage.getItem('userId');
-      const cachedUsername = localStorage.getItem('username') || '';
-
-      if (!userId) {
-        navigate('/login');
-        return;
-      }
-
-      if (cachedUsername) {
-        setUsername(cachedUsername);
-        setTempUsername(cachedUsername);
-      }
-        
-      // Normalizes API payload shape and hydrates all profile fields in one place.
-      const applyUserData = (data) => {
-        // Some older records use firstname/lastname instead of firstName/lastName.
-        const nextUsername = data.username || cachedUsername || '';
-        const nextCity = data.city || 'Kelowna';
-
-        setUsername(nextUsername);
-        setEmail(data.email || '');
-        setFirstName(data.firstName || data.firstname || '');
-        setLastName(data.lastName || data.lastname || '');
-        setCity(nextCity);
-        setTempUsername(nextUsername);
-        setTempCity(nextCity);
-      };
-
-      // Fallback path when /users/:id fails: load users list and find current user by cached username.
-      // This prevents blank profile fields if userId is stale or missing after refresh/navigation.
-      const fetchByUsernameFallback = () => {
-        if (!cachedUsername) {
-          // No username means we have no safe key to match a user record from the list endpoint.
-          return;
-        }
-
-        fetch('http://localhost:8800/users', { cache: 'no-store' })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error(`Failed to fetch users list: ${response.status}`);
-            }
-            return response.json();
-          })
-          .then(payload => {
-            const users = Array.isArray(payload) ? payload : (payload.users || []);
-            // Match exact username from login/localStorage to pick the correct profile row.
-            const match = users.find((u) => (u.username || '') === cachedUsername);
-            if (match) {
-              applyUserData(match);
-            }
-          })
-          .catch(err => {
-            console.error('Error loading profile from fallback users list:', err);
-          });
-      };
-
-      // Call backend to get user details by ID (excluding password for security)
-      fetch(`http://localhost:8800/users/${userId}`, { cache: 'no-store' })// do not cache, always get fresh data, gaurentees up to date
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Failed to fetch user: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(applyUserData)
-        .catch(err => {
-          console.error('Error loading user profile by id:', err);
-          // If id lookup fails, retry via username list lookup.
-          fetchByUsernameFallback();
-        });
-
-        // Display default sidebar content with user's actual username
-        displayDefaultSidebarContent();
-      }, [navigate]);
+  const handleChangeProfilePicture = () => {
+    // TODO: Implement profile picture change functionality
+    console.log('Change profile picture');
+  };
 
   return (
     <div className={`user-profile-container${isSidebarOpen ? ' sidebar-open' : ''}`}>
@@ -197,7 +184,7 @@ function UserProfile() {
       </Sidebar>
       <div className="profile-content">
         <h1>User Profile</h1>
-        
+        {statusMsg && <div className="status-message">{statusMsg}</div>}
         <div className="profile-wrapper">
           <div className="profile-left">
             <div className="profile-section">
@@ -231,55 +218,69 @@ function UserProfile() {
 
               <div className="profile-field">
                 <label>Email:</label>
-                <div className="display-field">
-                  <span>{email}</span>
-                </div>
+                {editingEmail ? (
+                  <div className="edit-field">
+                    <input type="email" value={tempEmail} onChange={e => setTempEmail(e.target.value)} />
+                    <button onClick={handleSaveEmail}>Save</button>
+                    <button onClick={handleCancelEmail}>Cancel</button>
+                  </div>
+                ) : (
+                  <div className="display-field">
+                    <span>{email}</span>
+                    <button className="change-btn" onClick={() => { setTempEmail(email); setEditingEmail(true); }}>Change</button>
+                  </div>
+                )}
               </div>
-
+              {/* Password */}
+              <div className="profile-field">
+                <label>Password:</label>
+                {editingPassword ? (
+                  <div className="edit-field">
+                    <input type="password" value={tempPassword} onChange={e => setTempPassword(e.target.value)} />
+                    <button onClick={handleSavePassword}>Save</button>
+                    <button onClick={handleCancelPassword}>Cancel</button>
+                  </div>
+                ) : (
+                  <div className="display-field">
+                    <span>********</span>
+                    <button className="change-btn" onClick={() => { 
+                      setTempPassword(''); setEditingPassword(true); }}>Change</button>
+                  </div>
+                )}
+              </div>
+              {/* Location */}
+              <div className="profile-field">
+                <label>Location:</label>
+                {editingLocation ? (
+                  <div className="edit-field">
+                    <input type="text" value={tempLocation} onChange={e => setTempLocation(e.target.value)} />
+                    <button onClick={handleSaveLocation}>Save</button>
+                    <button onClick={handleCancelLocation}>Cancel</button>
+                  </div>
+                ) : (
+                  <div className="display-field">
+                    <span>{location}</span>
+                    <button className="change-btn" onClick={() => {
+                      setTempLocation(location); setEditingLocation(true); }}>Change</button>
+                  </div>
+                )}
+              </div>
+              {/* First Name (not editable) */}
               <div className="profile-field">
                 <label>First Name:</label>
                 <div className="display-field">
                   <span>{firstName}</span>
                 </div>
               </div>
-
+              {/* Last Name (not editable) */}
               <div className="profile-field">
                 <label>Last Name:</label>
                 <div className="display-field">
                   <span>{lastName}</span>
                 </div>
               </div>
-
-              <div className="profile-field">
-                <label>City Location:</label>
-                {editingCity ? (
-                  <div className="edit-field">
-                    <input
-                      type="text"
-                      value={tempCity}
-                      onChange={(e) => setTempCity(e.target.value)}
-                    />
-                    <button onClick={handleSaveCity}>Save</button>
-                    <button onClick={handleCancelCity}>Cancel</button>
-                  </div>
-                ) : (
-                  <div className="display-field">
-                    <span>{city}</span>
-                    <button
-                      className="change-btn"
-                      onClick={() => {
-                        setTempCity(city);
-                        setEditingCity(true);
-                      }}
-                    >
-                      Change
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
-
           <div className="profile-right">
             <div className="profile-picture-section">
               <div className="profile-picture-container">

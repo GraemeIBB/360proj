@@ -230,11 +230,11 @@ function Home() {
         return 'Unknown owner';
     };
     const getBookAuthor = (book) =>{
-        if(book?.author)
-            return book.author
-    }
-        return 'unknow Author'
-};
+        if(book?.author) {
+            return book.author;
+        }
+        return 'Unknown Author';
+    };
        
 
     //  HELPER FUNCTION: GET BOOK COVER IMAGE 
@@ -447,5 +447,6 @@ function Home() {
     </>
   );
 
+}
 
 export default Home;

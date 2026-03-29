@@ -11,6 +11,10 @@ router.get('/by-username/:id', userController.getUserById);
 // GET /users/:id
 router.get('/:id', userController.getUserById);
 
+
+// PATCH /users/:id
+router.patch('/:id', userController.updateUser);
+
 // POST /users
 router.post('/', userController.createUser);
 
