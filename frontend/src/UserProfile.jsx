@@ -154,18 +154,76 @@ function UserProfile() {
     setViewMode('transactions');
   };
 
-  const handleViewBookPostings = () => {
-    // TODO: implement viewing the user's book postings in the sidebar
-    setSidebarContent(
-      <div>
-        <h2>Your Book Postings</h2>
-        <p>Here you can view and manage your book postings.</p>
-      </div>
-    );
+  // Book postings state
+  const [userBooks, setUserBooks] = useState([]);
+  const [loadingBooks, setLoadingBooks] = useState(false);
+  const [booksError, setBooksError] = useState('');
+  const [viewMode, setViewMode] = useState('');
 
+  const handleViewBookPostings = async () => {
+    setLoadingBooks(true);
+    setBooksError('');
+    try {
+      const res = await fetch('http://localhost:8800/books', { cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Failed to fetch books');
+      // If we fetched a data array, filter the results to only include books postings owned by the user
+      const filtered = (Array.isArray(data) ? data : []).filter(
+        (book) => {
+          // book.owner can be string or object with _id
+          if (!book.owner) return false;
+          if (typeof book.owner === 'string') return book.owner === userId;
+          if (typeof book.owner === 'object' && book.owner._id) return book.owner._id === userId;
+          return false;
+        }
+      );
+      setUserBooks(filtered);
+      setSidebarContent(
+        <div>
+          <h2>Your Book Postings</h2>
+          {loadingBooks ? (
+            <p>Loading...</p>
+          ) : booksError ? (
+            <p className="sidebar-error">{booksError}</p>
+          ) : filtered.length === 0 ? (
+            <p>You have no book postings.</p>
+          ) : (
+            // Display list of user's book postings as clickable cards that navigate to the book details page
+            <div className="sidebar-book-list">
+              {filtered.map((book) => {
+                const coverImage = book.coverImage || 'https://via.placeholder.com/80x120?text=No+Cover';
+                return (
+                  <div
+                    key={book._id}
+                    className="sidebar-book-card"
+                    onClick={() => navigate(`/books/${book._id}`)}
+                  >
+                    <img src={coverImage} alt={book.title} className="sidebar-book-cover" />
+                    <div className="sidebar-book-info">
+                      <div className="sidebar-book-title">{book.title}</div>
+                      <div className="sidebar-book-author">{book.author}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    } catch (err) {
+      setBooksError(err.message || 'Failed to load books');
+      setSidebarContent(
+        <div>
+          <h2>Your Book Postings</h2>
+          <p className="sidebar-error">{err.message || 'Failed to load books'}</p>
+        </div>
+      );
+    } finally {
+      setLoadingBooks(false);
+    }
     // Only toggle if we aren't already looking at book postings
-    if (sidebarRef.current && isSidebarOpen && viewMode !== 'bookPostings') {
-      // don't toggle since we're already open, just update content
+    if (sidebarRef.current && isSidebarOpen && viewMode === 'bookPostings') {
+      // already open and correct view
     } else {
       sidebarRef.current.toggle();
     }

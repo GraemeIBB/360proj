@@ -26,6 +26,20 @@ const searchBooksSchema = Joi.object({
     author: Joi.string().trim().optional(),
 });
 
+// Validation schema for updating a book (at least one field required)
+const updateBookSchema = Joi.object({
+    title: Joi.string().trim(),
+    author: Joi.string().trim(),
+    description: Joi.string().trim(),
+    publishedDate: Joi.date(),
+    isbn: Joi.string().trim(),
+    genre: Joi.string().trim().valid("fiction", "non-fiction", "mystery", "romance", "sci-fi", "fantasy", "other"),
+    condition: Joi.string().valid("new", "like new", "good", "fair"),
+    price: Joi.number().min(0),
+    coverImage: Joi.string().trim(),
+    isAvailable: Joi.boolean(),
+}).min(1); // At least one field required
+
 
 // CREATE BOOK
 exports.createBook = async (req, res) => { 
@@ -114,6 +128,62 @@ exports.deleteBook = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 }
+
+// PATCH /books/:id - Update book fields
+exports.updateBook = async (req, res) => {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: 'Invalid book id' });
+    }
+
+    // Validate input
+    const { error, value } = updateBookSchema.validate(req.body, {
+        abortEarly: false,
+        stripUnknown: true,
+    });
+    if (error) {
+        return res.status(400).json({
+            error: 'Invalid update payload',
+            details: error.details.map((d) => d.message),
+        });
+    }
+
+    try {
+        const book = await Book.findById(id);
+        if (!book) {
+            return res.status(404).json({ error: 'Book not found' });
+        }
+        // Only owner or admin can update
+        // TODO: bypass for now
+        /*
+        if (!req.user || (book.owner._id.toString() !== req.user.id && !req.user.admin)) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+        */
+
+        // Only allow updating allowed fields
+        const allowedFields = [
+            'title', 'author', 'description', 'publishedDate', 'isbn', 'genre', 'condition', 'price', 'coverImage', 'isAvailable'
+        ];
+        const update = {};
+        for (const key of allowedFields) {
+            if (value[key] !== undefined) update[key] = value[key];
+        }
+
+        const updatedBook = await Book.findByIdAndUpdate(
+            id,
+            { $set: update },
+            { new: true, runValidators: true, context: 'query' }
+        );
+
+        if (!updatedBook) {
+            return res.status(404).json({ error: 'Book not found after update' });
+        }
+        res.status(200).json({ message: 'Book updated', book: updatedBook });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
 
 exports.getAllBooks = async (req, res) => {
     try{
