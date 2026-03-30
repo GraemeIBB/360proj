@@ -1,3 +1,60 @@
+/* CSS for book postings sidebar card styles in UserProfile.jsx */
+.sidebar-book-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sidebar-book-card {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  background: #fafbfc;
+  border-radius: 8px;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  padding: 10px;
+  transition: box-shadow 0.2s, background 0.2s;
+  outline: none;
+}
+.sidebar-book-card:focus, .sidebar-book-card:hover {
+  box-shadow: 0 4px 16px rgba(44, 62, 80, 0.13);
+  background: #f5f7fa;
+}
+
+.sidebar-book-cover {
+  width: 60px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-right: 16px;
+  background: #f5f5f5;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.10);
+}
+
+.sidebar-book-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sidebar-book-title {
+  font-weight: 600;
+  font-size: 1.05em;
+  color: #2d3748;
+}
+.sidebar-book-author {
+  font-size: 0.95em;
+  color: #555;
+}
+
+.sidebar-error {
+  color: #b85c5a;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+/* ------------------------ */
+
 .sidebar-toggle {
   position: fixed;
   top: 10%;
