@@ -367,7 +367,12 @@ function Home() {
 
                         {/*  STATUS MESSAGES SECTION  */}
                         {/* Displays loading spinner, errors, or "no results" message while fetching or searching */}
-                        {loading && <p className="home-status">Loading books...</p>}
+                        {loading && (
+                            <div className="home-status loading-books">
+                                <img src="/src/assets/bookflip.gif" alt="Loading books" />
+                                <p>Loading books...</p>
+                            </div>
+                        )}
                         {error && <p className="home-status">{error}</p>}
                         {searchError && <p>{searchError}</p>}
                         {!loading && !error && noResults && <p className="home-status">No results found</p>}
