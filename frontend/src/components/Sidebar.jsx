@@ -5,13 +5,10 @@ const Sidebar = forwardRef(({ children, onToggle }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleSidebar = () => {
-    setIsOpen(prev => {
-      const newOpen = !prev;
-      if (onToggle) {
-        onToggle(newOpen);
-      }
-      return newOpen;
-    });
+    setIsOpen(prev => !prev);
+    if (onToggle) {
+      onToggle(!isOpen);
+    }
   };
 
   useImperativeHandle(ref, () => ({

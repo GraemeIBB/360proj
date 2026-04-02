@@ -135,3 +135,14 @@
         margin-top: 20px;
     }
 }
+
+.loading-books {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.loading-books img {
+    width: 120px;
+}
