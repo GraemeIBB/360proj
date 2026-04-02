@@ -32,6 +32,7 @@ router.post('/login', async (req, res) => {
       message: 'Logged in!',
       username: user.username,
       userId: user._id,
+      isAdmin: user.admin,
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });

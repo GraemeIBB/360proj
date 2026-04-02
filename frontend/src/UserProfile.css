@@ -179,6 +179,14 @@
   background-color: #a04a48;
 }
 
+.admin-panel-btn {
+  background-color: #111;
+}
+
+.admin-panel-btn:hover {
+  background-color: #333;
+}
+
 .action-buttons {
   display: flex;
   gap: 20px;

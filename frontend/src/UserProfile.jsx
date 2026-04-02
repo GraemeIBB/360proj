@@ -344,6 +344,9 @@ function UserProfile() {
           </div>
           <div className="profile-right">
             <div className="profile-picture-section">
+              {localStorage.getItem('isAdmin') === 'true' && (
+                <button className="change-picture-btn admin-panel-btn" onClick={() => navigate('/admin')}>Admin Panel</button>
+              )}
               <div className="profile-picture-container">
                 <User size={120} strokeWidth={1.5} />
               </div>

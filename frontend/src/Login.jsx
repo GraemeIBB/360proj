@@ -27,6 +27,7 @@ import './Login.css';
                 // Store the user ID from login response so profile page can fetch the user data
                 localStorage.setItem('userId', data.userId);
                 localStorage.setItem('username', data.username || '');
+                localStorage.setItem('isAdmin', data.isAdmin ? 'true' : 'false');
                 alert('Login successful!');
                 navigate('/');
             } else {
