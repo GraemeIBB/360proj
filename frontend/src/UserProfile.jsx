@@ -191,7 +191,10 @@ function UserProfile() {
             // Display list of user's book postings as clickable cards that navigate to the book details page
             <div className="sidebar-book-list">
               {filtered.map((book) => {
-                const coverImage = book.coverImage || 'https://via.placeholder.com/80x120?text=No+Cover';
+                const raw = book.coverImage;
+                const coverImage = raw
+                  ? (raw.startsWith('/') ? `http://localhost:8800${raw}` : raw)
+                  : 'https://via.placeholder.com/80x120?text=No+Cover';
                 return (
                   <div
                     key={book._id}
