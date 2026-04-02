@@ -43,23 +43,22 @@ function PostBook() {
     setStatus(null);
 
     try {
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('author', author);
+      formData.append('description', description);
+      formData.append('price', price);
+      formData.append('genre', genre);
+      formData.append('condition', condition);
+      // Send owner id explicitly because the backend currently does not attach req.user for create.
+      formData.append('owner', owner);
+      if (photo) {
+        formData.append('coverImage', photo);
+      }
+
       const response = await fetch('http://localhost:8800/books', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title,
-          author,
-          description,
-          price,
-          genre,
-          condition,
-          // Send owner id explicitly because the backend currently does not attach req.user for create.
-          owner,
-          // Use data URL preview as a temporary image transport until multipart upload is added.
-          coverImage: photoPreview,
-        }),
+        body: formData,
       });
 
       // Backend may return HTML/text on server errors, so parse safely.

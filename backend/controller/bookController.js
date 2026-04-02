@@ -1,6 +1,11 @@
 const Book = require("../models/Book");
 const mongoose = require("mongoose");
 const Joi = require("joi");
+const { getBucket } = require("../config/gridfs");
+const path = require("path");
+
+const MIME_MAP = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.gif': 'image/gif', '.webp': 'image/webp' };
+const mimeFromFilename = (filename) => MIME_MAP[path.extname(filename).toLowerCase()] || 'application/octet-stream';
 
 // Request payload validation for creating a listing.
 const createBookSchema = Joi.object({
@@ -79,8 +84,20 @@ exports.createBook = async (req, res) => {
             return res.status(400).json({ error: "Missing or invalid owner id" });
         }
 
-        // Support both multipart uploads (req.file) and JSON-based coverImage fallback from frontend.
-        const coverImage = req.file ? req.file.path : (req.body.coverImage || null);
+        // Upload image to GridFS if a file was included, otherwise leave coverImage null.
+        let coverImage = null;
+        if (req.file) {
+            const fileId = new mongoose.Types.ObjectId();
+            await new Promise((resolve, reject) => {
+                const uploadStream = getBucket().openUploadStreamWithId(fileId, req.file.originalname, {
+                    metadata: { contentType: req.file.mimetype },
+                });
+                uploadStream.on('finish', resolve);
+                uploadStream.on('error', reject);
+                uploadStream.end(req.file.buffer);
+            });
+            coverImage = `/books/image/${fileId}`;
+        }
 
     const newBook = await Book.create({ // Wait for the create operation to complete.
       title,
@@ -284,3 +301,22 @@ exports.searchBooks = async (req, res) => {
         res.status(500).json({ error: err.message });
       }
 }
+
+// GET /books/image/:id — stream a cover image from GridFS
+exports.getBookImage = async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ error: 'Invalid image id' });
+        }
+        const fileId = new mongoose.Types.ObjectId(req.params.id);
+        const files = await getBucket().find({ _id: fileId }).toArray();
+        if (!files.length) {
+            return res.status(404).json({ error: 'Image not found' });
+        }
+        const contentType = files[0].metadata?.contentType || mimeFromFilename(files[0].filename);
+        res.setHeader('Content-Type', contentType);
+        getBucket().openDownloadStream(fileId).pipe(res);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
