@@ -8,6 +8,7 @@ import PostBook from './PostBook.jsx'
 import ViewBook from './ViewBook.jsx'
 import SignUp from './Sign Up.jsx'
 import UserProfile from './UserProfile.jsx'
+import AdminPanel from './AdminPanel.jsx'
 // import Books from './Books.jsx'
 
 
@@ -22,6 +23,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/post-book" element={<PostBook />} />
         <Route path="/books/:id" element={<ViewBook />} />
         {/* <Route path="/books" element={<Books />} /> */}
+        <Route path="/admin" element={<AdminPanel />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
