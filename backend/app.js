@@ -13,12 +13,16 @@ var app = express();
 
 // database connection
 const mongoose = require('mongoose');
+const { initBucket } = require('./config/gridfs');
 
 if (!process.env.ATLAS_URI) {
   console.error('Missing ATLAS_URI. Create backend/.env with ATLAS_URI=<your MongoDB connection string>.');
 } else {
   mongoose.connect(process.env.ATLAS_URI)
-  .then(() => console.log("MongoDB Connected"))
+  .then(() => {
+    console.log("MongoDB Connected");
+    initBucket();
+  })
   .catch(err => console.log(err));
 }
 

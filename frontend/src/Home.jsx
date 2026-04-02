@@ -241,8 +241,9 @@ function Home() {
     // Retrieves book's cover image URL or returns placeholder if missing
     // Placeholder from via.placeholder.com ensures card always has an image (no broken src)
     const getCoverImage = (book) => {
-        // Fallback keeps cards visually consistent when no image is uploaded yet.
-        return book?.coverImage || 'https://via.placeholder.com/280x180?text=No+Image';
+        if (!book?.coverImage) return 'https://via.placeholder.com/280x180?text=No+Image';
+        if (book.coverImage.startsWith('/')) return `http://localhost:8800${book.coverImage}`;
+        return book.coverImage;
     };
 
   return (

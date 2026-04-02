@@ -2,9 +2,13 @@ const express = require('express');
 const router = express.Router();
 
 const bookController = require('../controller/bookController');
+const upload = require('../upload/upload');
+
+// SERVE COVER IMAGE FROM GRIDFS
+router.get('/image/:id', bookController.getBookImage);
 
 // CREATE BOOK
-router.post('/', bookController.createBook);
+router.post('/', upload.single('coverImage'), bookController.createBook);
 
 // GET ALL BOOKS
 router.get('/', bookController.getAllBooks);
