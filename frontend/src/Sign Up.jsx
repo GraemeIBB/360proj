@@ -4,6 +4,7 @@ import Footer from './components/Footer';
 import Button from './components/Button';
 import './Login.css';
 
+
 function SignUp() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -11,20 +12,28 @@ function SignUp() {
   const [location, setLocation] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [profileImage, setProfileImage] = useState(null);
   const [status, setStatus] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setStatus(null);
 
     try {
+      const formData = new FormData();
+      formData.append('firstName', firstName);
+      formData.append('lastName', lastName);
+      formData.append('email', email);
+      formData.append('location', location);
+      formData.append('username', username);
+      formData.append('password', password);
+      if (profileImage) {
+        formData.append('profileImage', profileImage);
+      }
+
       const response = await fetch('http://localhost:8800/users', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ firstName, lastName, email, location, username, password }),
+        body: formData,
       });
 
       // Backend may return HTML/text on server errors, so parse safely.
@@ -46,44 +55,43 @@ function SignUp() {
       setStatus({ type: 'success', message: 'User created successfully!' });
       alert('User created successfully!');
 
-        setFirstName('');
-        setLastName('');
-        setEmail('');
-        setLocation('');
-        setUsername('');
-        setPassword('');
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setLocation('');
+      setUsername('');
+      setPassword('');
+      setProfileImage(null);
 
+      // log in the user after signup
+      fetch('http://localhost:8800/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+      })
+        .then(async response => {
+          if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('userId', data.userId);
+            localStorage.setItem('username', data.username || '');
+            alert('Login successful!');
+            navigate('/');
+          } else {
+            const data = await response.json();
+            const errorMsg = data?.message || 'Invalid username or password';
+            alert('Login failed: ' + errorMsg);
+          }
+        })
+        .catch(error => {
+          console.log('Login error:', error);
+          alert('Login failed: Network error. Could not reach server.');
+        });
     } catch (err) {
       setStatus({ type: 'error', message: 'Network error. Could not reach server.' });
       alert('User creation failed: Network error. Could not reach server.');
     }
-
-    // log in the user after signup
-        fetch('http://localhost:8800/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password })
-        })
-        .then(async response => {
-            if (response.ok) {
-                const data = await response.json();
-                // Store the user ID from login response so profile page can fetch the user data
-                localStorage.setItem('userId', data.userId);
-                localStorage.setItem('username', data.username || '');
-                alert('Login successful!');
-                navigate('/');
-            } else {
-                const data = await response.json();
-                const errorMsg = data?.message || 'Invalid username or password';
-                alert('Login failed: ' + errorMsg);
-            }
-        })
-        .catch(error => {
-            console.log('Login error:', error);
-            alert('Login failed: Network error. Could not reach server.');
-        });
   };
 
   return (
@@ -172,6 +180,15 @@ function SignUp() {
               />
             </div>
 
+            <div className="form-group">
+              <label htmlFor="profileImage">Profile Photo</label>
+              <input
+                id="profileImage"
+                type="file"
+                accept="image/*"
+                onChange={e => setProfileImage(e.target.files[0])}
+              />
+            </div>
             <Button type="submit" title="Create user" />
           </form>
         </div>

@@ -2,6 +2,7 @@ const User = require('../models/User');
 const mongoose = require('mongoose');
 const Joi = require('joi');
 const bcrypt = require('bcrypt');
+const { getBucket } = require('../config/gridfs');
 
 // Request payload validation for creating a user.
 const createUserSchema = Joi.object({
@@ -42,6 +43,7 @@ exports.getAllUsers = async (req, res) => {
 };
 
 exports.createUser = async (req, res) => {
+    // If using multipart/form-data, fields are in req.body, file in req.file
     // Validate payload before touching DB.
         // .validate() checks req.body against createUserSchema and returns { error, value }.
         const { error, value } = createUserSchema.validate(req.body, {
@@ -78,15 +80,31 @@ exports.createUser = async (req, res) => {
         // Hash password with 10 salt rounds (bcrypt standard)
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create and save new user with hashed password
+        // Upload image to GridFS if a file was included, otherwise leave profileImage null.
+        let profileImage = null;
+        if (req.file) {
+            const fileId = new mongoose.Types.ObjectId();
+            await new Promise((resolve, reject) => {
+                const uploadStream = getBucket().openUploadStreamWithId(fileId, req.file.originalname, {
+                    metadata: { contentType: req.file.mimetype },
+                });
+                uploadStream.on('finish', resolve);
+                uploadStream.on('error', reject);
+                uploadStream.end(req.file.buffer);
+            });
+            profileImage = `/users/image/${fileId}`;
+        }
+
+        // Create and save new user with hashed password and profileImage
         const newUser = await User.create({
             firstName,
             lastName,
             email,
             location,
             username,
-            password: hashedPassword,  // Store hashed, not plaintext
-            admin: isAdmin
+            password: hashedPassword,   // Store hashed password, never plaintext
+            admin: isAdmin,
+            profileImage,
         });
 
         // Return user without password field
@@ -101,8 +119,8 @@ exports.createUser = async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
-
 }
+
 exports.deleteUser = async (req, res) => {
     try {
         // Delete authorization depends on auth middleware attaching req.user.
