@@ -5,6 +5,7 @@ import './Navbar.css'
 function Navbar() {
   const [notifs, setNotifs] = useState(1)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [profileImage, setProfileImage] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -20,7 +21,24 @@ function Navbar() {
 
   useEffect(() => {
     const syncLoginState = () => {
-      setIsLoggedIn(Boolean(localStorage.getItem('userId')))
+      // Check if a user is logged in
+      const userId = localStorage.getItem('userId')
+      setIsLoggedIn(Boolean(userId))
+      if (userId) {
+        // Fetch user info to set profile image
+        fetch(`http://localhost:8800/users/${userId}`)
+          .then(res => res.ok ? res.json() : null)
+          .then(user => {
+            if (user && user.profileImage) {
+              setProfileImage(`http://localhost:8800${user.profileImage}`)
+            } else {
+              setProfileImage(null)
+            }
+          })
+          .catch(() => setProfileImage(null))
+      } else {
+        setProfileImage(null)
+      }
     }
 
     syncLoginState()
@@ -75,7 +93,11 @@ function Navbar() {
             </button>
           )}
           <button className="navbar-profile" onClick={handleProfileClick} title="View Profile">
-            <img src="https://placehold.co/40x40" alt="Profile" />
+            <img
+              src={profileImage || "https://placehold.co/40x40"}
+              alt="Profile"
+              style={{ borderRadius: '50%' }}
+            />
           </button>
         </div>
       </div>
