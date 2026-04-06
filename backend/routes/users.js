@@ -13,8 +13,12 @@ router.get('/by-username/:id', userController.getUserById);
 router.get('/:id', userController.getUserById);
 
 
+
 // PATCH /users/:id
 router.patch('/:id', userController.updateUser);
+
+// PATCH /users/:id/profile-image (update profile image)
+router.patch('/:id/profile-image', upload.single('profileImage'), userController.updateProfileImage);
 
 
 // Serve user profile image from GridFS

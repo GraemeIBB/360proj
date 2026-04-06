@@ -287,5 +287,55 @@ exports.getUserById = async (req, res) => {
     }
 };
 
+// PATCH /users/:id/profile-image controller
+exports.updateProfileImage = async (req, res) => {
+    const userId = req.params.id;
+    // Validate user ID
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ error: 'Invalid user id' });
+    }
+    try {
+        // Find user by ID
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        const bucket = getBucket();
+        // Remove old image from GridFS if present
+        if (user.profileImage) {
+            // Extract file ID from stored path (e.g., /users/image/<fileId>)
+            const match = user.profileImage.match(/\/users\/image\/([a-fA-F0-9]{24})/);
+            if (match) {
+                const oldId = match[1];
+                try {
+                    await bucket.delete(new mongoose.Types.ObjectId(oldId));
+                } catch (e) {/* ignore if not found */}
+            }
+        }
+        // Upload new image to GridFS if provided
+        let profileImage = null;
+        if (req.file) {
+            const fileId = new mongoose.Types.ObjectId();
+            await new Promise((resolve, reject) => {
+                const uploadStream = bucket.openUploadStreamWithId(fileId, req.file.originalname, {
+                    metadata: { contentType: req.file.mimetype },
+                });
+                uploadStream.on('finish', resolve);
+                uploadStream.on('error', reject);
+                uploadStream.end(req.file.buffer);
+            });
+            // Store the path to access the image later
+            profileImage = `/users/image/${fileId}`;
+        }
+        // Update user's profileImage field
+        user.profileImage = profileImage;
+        // Save user state and respond
+        await user.save();
+        res.status(200).json({ message: 'Profile image updated', profileImage });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
 
 

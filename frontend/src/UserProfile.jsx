@@ -19,6 +19,8 @@ function UserProfile() {
   const [location, setLocation] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [profileImage, setProfileImage] = useState(null); // URL or null
+  const fileInputRef = useRef();
 
   // Edit mode toggles for each field
   const [editingUsername, setEditingUsername] = useState(false);
@@ -56,6 +58,12 @@ function UserProfile() {
       setTempEmail(data.email || '');
       setTempPassword('');
       setTempLocation(data.location || '');
+      // Set profile image if present
+      if (data.profileImage) {
+        setProfileImage(data.profileImage.startsWith('/') ? `http://localhost:8800${data.profileImage}` : data.profileImage);
+      } else {
+        setProfileImage(null);
+      }
     };
 
     // Fallback fetch by username
@@ -232,9 +240,33 @@ function UserProfile() {
     }
     setViewMode('bookPostings');
   };
+  // Profile picture upload logic
   const handleChangeProfilePicture = () => {
-    // TODO: Implement profile picture change functionality
-    console.log('Change profile picture');
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handleProfileImageSelected = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !userId) return;
+    setStatusMsg('Uploading profile image...');
+    // Create form data with the profile image, use PATCH to update the database
+    const formData = new FormData();
+    formData.append('profileImage', file);
+    try {
+      const res = await fetch(`http://localhost:8800/users/${userId}/profile-image`, {
+        method: 'PATCH',
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || data?.message || 'Failed to update image');
+      // Ensure the profile image URL in appropirately formatted before setting
+      if (data.profileImage) {
+        setProfileImage(data.profileImage.startsWith('/') ? `http://localhost:8800${data.profileImage}` : data.profileImage);
+      }
+      setStatusMsg('Profile image updated!');
+    } catch (err) {
+      setStatusMsg(err.message || 'Failed to update image');
+    }
   };
 
   return (
@@ -348,8 +380,23 @@ function UserProfile() {
                 <button className="change-picture-btn admin-panel-btn" onClick={() => navigate('/admin')}>Admin Panel</button>
               )}
               <div className="profile-picture-container">
-                <User size={120} strokeWidth={1.5} />
+                {profileImage ? (
+                  <img
+                    src={profileImage + `?${Date.now()}`}
+                    alt="Profile"
+                    style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 8 }}
+                  />
+                ) : (
+                  <User size={120} strokeWidth={1.5} />
+                )}
               </div>
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                ref={fileInputRef}
+                onChange={handleProfileImageSelected}
+              />
               <button className="change-picture-btn" onClick={handleChangeProfilePicture}>Change Profile Picture</button>
             </div>
           </div>
