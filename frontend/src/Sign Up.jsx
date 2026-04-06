@@ -14,10 +14,20 @@ function SignUp() {
   const [password, setPassword] = useState('');
   const [profileImage, setProfileImage] = useState(null);
   const [status, setStatus] = useState(null);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPasswordMismatch, setShowPasswordMismatch] = useState(false);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus(null);
+
+    if (password !== confirmPassword) {
+      setShowPasswordMismatch(true);
+      return;
+    } else {
+      setShowPasswordMismatch(false);
+    }
 
     try {
       const formData = new FormData();
@@ -61,6 +71,7 @@ function SignUp() {
       setLocation('');
       setUsername('');
       setPassword('');
+      setConfirmPassword('');
       setProfileImage(null);
 
       // log in the user after signup
@@ -178,6 +189,26 @@ function SignUp() {
                 placeholder="Password"
                 required
               />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="confirmPassword">Confirm Password</label>
+              <input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setShowPasswordMismatch(false);
+                }}
+                placeholder="Confirm Password"
+                required
+              />
+
+              {/* Password mismatch message below confirm password field */}
+              <div className={`confirm-password-error-msg ${showPasswordMismatch ? 'visible' : ''}`}>
+                passwords do not match
+              </div>
             </div>
 
             <div className="form-group">

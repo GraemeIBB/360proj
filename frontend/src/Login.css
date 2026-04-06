@@ -84,3 +84,16 @@
 #button:active {
     background-color: #3d8b40;
 }
+
+.confirm-password-error-msg {
+    color: red;
+    font-size: 13px;
+    min-height: 18px;
+    margin-bottom: 8px;
+    visibility: hidden; /* Default to hidden, will be shown when passwords do not match */
+}
+
+.confirm-password-error-msg.visible {
+    visibility: visible;
+}
+
