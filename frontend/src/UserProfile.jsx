@@ -264,6 +264,8 @@ function UserProfile() {
         setProfileImage(data.profileImage.startsWith('/') ? `http://localhost:8800${data.profileImage}` : data.profileImage);
       }
       setStatusMsg('Profile image updated!');
+      // Reload the page to update Navbar
+      window.location.reload();
     } catch (err) {
       setStatusMsg(err.message || 'Failed to update image');
     }
