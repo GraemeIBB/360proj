@@ -48,7 +48,9 @@ function ViewBook() {
 
   // Determine if viewer is owner
   const userId = localStorage.getItem('userId');
+  const isAdmin = localStorage.getItem('isAdmin') === 'true';
   const isOwner = book && book.owner && ((typeof book.owner === 'string' && book.owner === userId) || (typeof book.owner === 'object' && book.owner._id === userId));
+  const canDelete = Boolean(isOwner || isAdmin);
 
   // Helper to update a book field
   const handleFieldEdit = (field, value) => {
@@ -85,7 +87,10 @@ function ViewBook() {
     try {
       const res = await fetch(`http://localhost:8800/books/${id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': userId || '',
+        },
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -261,7 +266,7 @@ function ViewBook() {
                   <strong>Owner:</strong> {ownerName}{ownerEmail ? ` (${ownerEmail})` : ""}
                 </p>
                 {statusMsg && <div style={{ color: statusMsg.includes('fail') ? 'red' : 'green', margin: '10px 0' }}>{statusMsg}</div>}
-                {isOwner && (
+                {canDelete && (
                   <button className="delete-btn" onClick={handleDelete} disabled={deleting}>
                     {deleting ? 'Deleting...' : 'Delete Post'}
                   </button>
