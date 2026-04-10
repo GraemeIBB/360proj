@@ -1,4 +1,5 @@
 const Book = require("../models/Book");
+const User = require("../models/User");
 const mongoose = require("mongoose");
 const Joi = require("joi");
 const { getBucket } = require("../config/gridfs");
@@ -121,7 +122,13 @@ exports.createBook = async (req, res) => {
 
 exports.deleteBook = async (req, res) => {
     try{
-        if (!req.user) {
+        const actorId = req.user?.id || req.headers['x-user-id'];
+        if (!actorId || !mongoose.Types.ObjectId.isValid(actorId)) {
+            return res.status(401).json({ error: "Authentication required" });
+        }
+
+        const actor = await User.findById(actorId).select('admin');
+        if (!actor) {
             return res.status(401).json({ error: "Authentication required" });
         }
 
@@ -135,7 +142,7 @@ exports.deleteBook = async (req, res) => {
             return res.status(404).json({ error: "Book not found" });
         }
         // Allow delete for owner or admin only.
-        if(book.owner.toString() !== req.user.id && !req.user.admin){
+        if(book.owner.toString() !== actorId.toString() && !actor.admin){
             return res.status(403).json({ error: "Unauthorized" });
     }
         // Hard delete the selected book document.
