@@ -25,7 +25,7 @@
     position: static;
     width: 100%;
     max-width: 700px;
-    margin: calc(8px + var(--home-content-drop)) auto 0 auto;
+    margin: calc(-340px + var(--home-content-drop)) auto 0 auto;
 }
 
 #login-buttons {
