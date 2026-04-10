@@ -52,6 +52,14 @@
     border-radius: 4px;
     font-size: 14px;
     transition: border-color 0.3s;
+    color: black;
+}
+
+input[type="file"]::-webkit-file-upload-button {
+    color: black;
+}
+input[type="file"]::file-selector-button {
+    color: black;
 }
 
 .form-group input:focus {
