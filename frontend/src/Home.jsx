@@ -365,6 +365,22 @@ function Home() {
             {/* User types book title/author here for quick search */}
                         <div id="home-search-bar"><SearchBar onSearch={handleSearch} /></div>
 
+            {/*  ACTION BUTTONS SECTION  */}
+            {/* Keep controls grouped with search so they remain above results */}
+            <div id="home-buttons">
+                {/* Filters button: toggles sidebar panel open/closed for advanced search */}
+                <Button title={"Filters"} onClick={handleFiltersClick} />
+                
+                {/* Hot Books button: TODO - will show trending/most-viewed books when implemented */}
+                <Button title={"Hot Books"} />
+                
+                {/* Post Book button: only visible if user is logged in */}
+                {/* Navigates to /post-book page where users can list a book for sale */}
+                {isLoggedIn && (
+                    <Button title={"Post Book"} onClick={() => navigate('/post-book')} />
+                )}
+            </div>
+
                         {/*  STATUS MESSAGES SECTION  */}
                         {/* Displays loading spinner, errors, or "no results" message while fetching or searching */}
                         {loading && (
@@ -430,21 +446,6 @@ function Home() {
                             </div>
                         )}
 
-            {/*  ACTION BUTTONS SECTION  */}
-            {/* Row of buttons for marketplace controls: Filters, Hot Books, and Post Book (if logged in) */}
-            <div id="home-buttons">
-                {/* Filters button: toggles sidebar panel open/closed for advanced search */}
-                <Button title={"Filters"} onClick={handleFiltersClick} />
-                
-                {/* Hot Books button: TODO - will show trending/most-viewed books when implemented */}
-                <Button title={"Hot Books"} />
-                
-                {/* Post Book button: only visible if user is logged in */}
-                {/* Navigates to /post-book page where users can list a book for sale */}
-                {isLoggedIn && (
-                    <Button title={"Post Book"} onClick={() => navigate('/post-book')} />
-                )}
-            </div>
         </div>
 
         {/*  FOOTER SECTION  */}

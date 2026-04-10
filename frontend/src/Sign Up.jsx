@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Button from './components/Button';
@@ -11,12 +12,21 @@ function SignUp() {
   const [location, setLocation] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [status, setStatus] = useState(null);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     setStatus(null);
+
+    if (password !== confirmPassword) {
+      const message = 'Passwords do not match.';
+      setStatus({ type: 'error', message });
+      alert(`User creation failed: ${message}`);
+      return;
+    }
 
     try {
       const response = await fetch('http://localhost:8800/users', {
@@ -52,6 +62,7 @@ function SignUp() {
         setLocation('');
         setUsername('');
         setPassword('');
+        setConfirmPassword('');
 
     } catch (err) {
       setStatus({ type: 'error', message: 'Network error. Could not reach server.' });
@@ -168,6 +179,18 @@ function SignUp() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="confirmPassword">Confirm Password</label>
+              <input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter your password"
                 required
               />
             </div>
