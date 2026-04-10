@@ -28,6 +28,7 @@ import './Login.css';
                 localStorage.setItem('userId', data.userId);
                 localStorage.setItem('username', data.username || '');
                 localStorage.setItem('isAdmin', data.isAdmin ? 'true' : 'false');
+                localStorage.setItem('profilePicture', data.profilePicture || '');
                 alert('Login successful!');
                 navigate('/');
             } else {

@@ -11,6 +11,7 @@ import { User } from 'lucide-react';
 function UserProfile() {
   const navigate = useNavigate();
   const sidebarRef = useRef(null);
+  const profileFileInputRef = useRef(null);
   
   // User profile state - will be populated from backend on mount
   const [username, setUsername] = useState('');
@@ -19,6 +20,8 @@ function UserProfile() {
   const [location, setLocation] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [profilePicture, setProfilePicture] = useState('');
+  const [uploadingPicture, setUploadingPicture] = useState(false);
 
   // Edit mode toggles for each field
   const [editingUsername, setEditingUsername] = useState(false);
@@ -52,6 +55,8 @@ function UserProfile() {
       setLocation(data.location || '');
       setFirstName(data.firstName || data.firstname || '');
       setLastName(data.lastName || data.lastname || '');
+      setProfilePicture(data.profilePicture || '');
+      localStorage.setItem('profilePicture', data.profilePicture || '');
       setTempUsername(data.username || cachedUsername || '');
       setTempEmail(data.email || '');
       setTempPassword('');
@@ -233,9 +238,53 @@ function UserProfile() {
     setViewMode('bookPostings');
   };
   const handleChangeProfilePicture = () => {
-    // TODO: Implement profile picture change functionality
-    console.log('Change profile picture');
+    if (profileFileInputRef.current) {
+      profileFileInputRef.current.click();
+    }
   };
+
+  const handleProfilePictureSelected = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file || !userId) {
+      return;
+    }
+
+    setUploadingPicture(true);
+    setStatusMsg('');
+
+    try {
+      const formData = new FormData();
+      formData.append('profilePicture', file);
+
+      const res = await fetch(`http://localhost:8800/users/${userId}/profile-picture`, {
+        method: 'POST',
+        headers: {
+          'x-user-id': userId,
+        },
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error || data?.message || 'Failed to upload profile picture');
+      }
+
+      const nextPicture = data?.profilePicture || data?.user?.profilePicture || '';
+      setProfilePicture(nextPicture);
+      localStorage.setItem('profilePicture', nextPicture);
+      window.dispatchEvent(new Event('storage'));
+      setStatusMsg('Profile picture updated!');
+    } catch (err) {
+      setStatusMsg(err.message || 'Failed to upload profile picture');
+    } finally {
+      event.target.value = '';
+      setUploadingPicture(false);
+    }
+  };
+
+  const profilePictureSrc = profilePicture
+    ? (profilePicture.startsWith('/') ? `http://localhost:8800${profilePicture}` : profilePicture)
+    : '';
 
   return (
     <div className={`user-profile-container${isSidebarOpen ? ' sidebar-open' : ''}`}>
@@ -348,9 +397,22 @@ function UserProfile() {
                 <button className="change-picture-btn admin-panel-btn" onClick={() => navigate('/admin')}>Admin Panel</button>
               )}
               <div className="profile-picture-container">
-                <User size={120} strokeWidth={1.5} />
+                {profilePictureSrc ? (
+                  <img src={profilePictureSrc} alt="Profile" className="profile-picture-image" />
+                ) : (
+                  <User size={120} strokeWidth={1.5} />
+                )}
               </div>
-              <button className="change-picture-btn" onClick={handleChangeProfilePicture}>Change Profile Picture</button>
+              <input
+                ref={profileFileInputRef}
+                type="file"
+                accept="image/*"
+                className="profile-picture-input"
+                onChange={handleProfilePictureSelected}
+              />
+              <button className="change-picture-btn" onClick={handleChangeProfilePicture} disabled={uploadingPicture}>
+                {uploadingPicture ? 'Uploading...' : 'Change Profile Picture'}
+              </button>
             </div>
           </div>
         </div>
