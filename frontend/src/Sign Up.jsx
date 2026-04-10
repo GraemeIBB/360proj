@@ -13,7 +13,9 @@ function SignUp() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [profileImage, setProfileImage] = useState(null);
   const [status, setStatus] = useState(null);
+  const [showPasswordMismatch, setShowPasswordMismatch] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -22,19 +24,27 @@ function SignUp() {
     setStatus(null);
 
     if (password !== confirmPassword) {
-      const message = 'Passwords do not match.';
-      setStatus({ type: 'error', message });
-      alert(`User creation failed: ${message}`);
+      setShowPasswordMismatch(true);
       return;
+    } else {
+      setShowPasswordMismatch(false);
     }
 
     try {
+      const formData = new FormData();
+      formData.append('firstName', firstName);
+      formData.append('lastName', lastName);
+      formData.append('email', email);
+      formData.append('location', location);
+      formData.append('username', username);
+      formData.append('password', password);
+      if (profileImage) {
+        formData.append('profileImage', profileImage);
+      }
+
       const response = await fetch('http://localhost:8800/users', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ firstName, lastName, email, location, username, password }),
+        body: formData,
       });
 
       // Backend may return HTML/text on server errors, so parse safely.
@@ -56,46 +66,44 @@ function SignUp() {
       setStatus({ type: 'success', message: 'User created successfully!' });
       alert('User created successfully!');
 
-        setFirstName('');
-        setLastName('');
-        setEmail('');
-        setLocation('');
-        setUsername('');
-        setPassword('');
-        setConfirmPassword('');
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setLocation('');
+      setUsername('');
+      setPassword('');
+      setConfirmPassword('');
+      setProfileImage(null);
 
+      // log in the user after signup
+      fetch('http://localhost:8800/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+      })
+        .then(async response => {
+          if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('userId', data.userId);
+            localStorage.setItem('username', data.username || '');
+            alert('Login successful!');
+            navigate('/');
+          } else {
+            const data = await response.json();
+            const errorMsg = data?.message || 'Invalid username or password';
+            alert('Login failed: ' + errorMsg);
+          }
+        })
+        .catch(error => {
+          console.log('Login error:', error);
+          alert('Login failed: Network error. Could not reach server.');
+        });
     } catch (err) {
       setStatus({ type: 'error', message: 'Network error. Could not reach server.' });
       alert('User creation failed: Network error. Could not reach server.');
     }
-
-    // log in the user after signup
-        fetch('http://localhost:8800/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password })
-        })
-        .then(async response => {
-            if (response.ok) {
-                const data = await response.json();
-                // Store the user ID from login response so profile page can fetch the user data
-                localStorage.setItem('userId', data.userId);
-                localStorage.setItem('username', data.username || '');
-                localStorage.setItem('profilePicture', data.profilePicture || '');
-                alert('Login successful!');
-                navigate('/');
-            } else {
-                const data = await response.json();
-                const errorMsg = data?.message || 'Invalid username or password';
-                alert('Login failed: ' + errorMsg);
-            }
-        })
-        .catch(error => {
-            console.log('Login error:', error);
-            alert('Login failed: Network error. Could not reach server.');
-        });
   };
 
   return (
@@ -190,9 +198,36 @@ function SignUp() {
                 id="confirmPassword"
                 type="password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Re-enter your password"
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setShowPasswordMismatch(false);
+                }}
+                placeholder="Confirm Password"
                 required
+              />
+
+              {/* Password mismatch message below confirm password field */}
+              <div
+                style={{
+                  color: 'red',
+                  fontSize: '13px',
+                  minHeight: '18px',
+                  marginTop: '2px',
+                  visibility: showPasswordMismatch ? 'visible' : 'hidden',
+                  transition: 'visibility 0.2s',
+                }}
+              >
+                Passwords do not match
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="profileImage">Profile Photo (Optional)</label>
+              <input
+                id="profileImage"
+                type="file"
+                accept="image/*"
+                onChange={e => setProfileImage(e.target.files[0])}
               />
             </div>
 
