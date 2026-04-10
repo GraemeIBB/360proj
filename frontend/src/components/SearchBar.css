@@ -25,9 +25,10 @@
 }
 
 .search-bar button {
-  position: absolute; 
-  left: 84%; 
+  position: static;
   padding: 0.9rem 1.1rem;
+  margin-right: 8px;
+  transform: translateX(-10px);
   border: none;
   border-radius: 100px;
   background: #a09f9f;
@@ -35,6 +36,10 @@
   font-weight: 600;
   cursor: pointer;
   transition: background .2s;
+}
+
+.search-bar button svg {
+  transform: none;
 }
 
 .search-bar button:hover {
