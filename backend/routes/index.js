@@ -33,6 +33,7 @@ router.post('/login', async (req, res) => {
       username: user.username,
       userId: user._id,
       isAdmin: user.admin,
+      profilePicture: user.profilePicture || '',
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });

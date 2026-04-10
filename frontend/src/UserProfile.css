@@ -160,6 +160,18 @@
   justify-content: center;
   border: 2px solid #ddd;
   color: #b85c5a;
+  overflow: hidden;
+}
+
+.profile-picture-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-picture-input {
+  display: none;
 }
 
 .change-picture-btn {

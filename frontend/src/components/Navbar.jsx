@@ -5,6 +5,7 @@ import './Navbar.css'
 function Navbar() {
   const [notifs, setNotifs] = useState(1)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [profilePicture, setProfilePicture] = useState('')
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -19,8 +20,29 @@ function Navbar() {
   }, [])
 
   useEffect(() => {
-    const syncLoginState = () => {
-      setIsLoggedIn(Boolean(localStorage.getItem('userId')))
+    const syncLoginState = async () => {
+      const userId = localStorage.getItem('userId')
+      setIsLoggedIn(Boolean(userId))
+
+      if (!userId) {
+        setProfilePicture('')
+        return
+      }
+
+      try {
+        const response = await fetch(`http://localhost:8800/users/${userId}`, { cache: 'no-store' })
+        if (!response.ok) {
+          throw new Error('Unable to load profile picture')
+        }
+
+        const user = await response.json()
+        const nextPicture = user?.profilePicture || localStorage.getItem('profilePicture') || ''
+        setProfilePicture(nextPicture)
+        localStorage.setItem('profilePicture', nextPicture)
+      } catch (error) {
+        console.debug('Profile picture unavailable:', error.message)
+        setProfilePicture(localStorage.getItem('profilePicture') || '')
+      }
     }
 
     syncLoginState()
@@ -36,6 +58,7 @@ function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem('userId')
     localStorage.removeItem('username')
+    localStorage.removeItem('profilePicture')
     // Notify same-tab listeners that auth state changed.
     window.dispatchEvent(new Event('storage'))
     navigate('/')
@@ -75,7 +98,10 @@ function Navbar() {
             </button>
           )}
           <button className="navbar-profile" onClick={handleProfileClick} title="View Profile">
-            <img src="https://placehold.co/40x40" alt="Profile" />
+            <img
+              src={profilePicture ? (profilePicture.startsWith('/') ? `http://localhost:8800${profilePicture}` : profilePicture) : 'https://placehold.co/40x40'}
+              alt="Profile"
+            />
           </button>
         </div>
       </div>
