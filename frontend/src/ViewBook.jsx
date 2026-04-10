@@ -118,9 +118,9 @@ function ViewBook() {
     ? new Date(book.publishedDate).toLocaleDateString()
     : "N/A";
   const rawCover = book?.coverImage;
-  const coverImage = rawCover
-    ? (rawCover.startsWith('/') ? `http://localhost:8800${rawCover}` : rawCover)
-    : "https://via.placeholder.com/200x300?text=No+Cover";
+  const coverImage = !rawCover
+    ? "http://localhost:8800/images/Book.png"
+    : (rawCover.startsWith('/') ? `http://localhost:8800${rawCover}` : rawCover);
 
   return (
     <>

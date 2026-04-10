@@ -85,7 +85,8 @@ exports.createBook = async (req, res) => {
             return res.status(400).json({ error: "Missing or invalid owner id" });
         }
 
-        // Upload image to GridFS if a file was included, otherwise leave coverImage null.
+
+        // Upload image to GridFS if a file was included, otherwise use Book.png as default.
         let coverImage = null;
         if (req.file) {
             const fileId = new mongoose.Types.ObjectId();
@@ -98,20 +99,23 @@ exports.createBook = async (req, res) => {
                 uploadStream.end(req.file.buffer);
             });
             coverImage = `/books/image/${fileId}`;
+        } else {
+            // Use static Book.png in public/images as default
+            coverImage = '/images/Book.png';
         }
 
-    const newBook = await Book.create({ // Wait for the create operation to complete.
-      title,
-      author,
-      description,
-      publishedDate,
-      isbn,
+        const newBook = await Book.create({
+            title,
+            author,
+            description,
+            publishedDate,
+            isbn,
             genre,
-      condition,
-      price,
+            condition,
+            price,
             owner: ownerId,
             coverImage,
-    });
+        });
 
         res.status(201).json(newBook); // 201 Created + created book payload.
 
