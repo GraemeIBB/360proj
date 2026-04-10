@@ -201,6 +201,45 @@ function Home() {
             await runSearch(filters);
         };
 
+        //  HELPER FUNCTION: HOT BOOKS FILTER
+        // Shows books for the title(s) that currently have the highest listing count.
+        const handleHotBooks = () => {
+            setSearchError('');
+
+            if (!Array.isArray(allBooks) || allBooks.length === 0) {
+                setSearchResults([]);
+                setVisibleBooks([]);
+                setNoResults(true);
+                return;
+            }
+
+            const titleCounts = new Map();
+            allBooks.forEach((book) => {
+                const key = (book?.title || '').trim().toLowerCase();
+                if (!key) return;
+                titleCounts.set(key, (titleCounts.get(key) || 0) + 1);
+            });
+
+            if (titleCounts.size === 0) {
+                setSearchResults([]);
+                setVisibleBooks([]);
+                setNoResults(true);
+                return;
+            }
+
+            const topCountLevels = [...new Set(titleCounts.values())]
+                .sort((a, b) => b - a)
+                .slice(0, 3);
+            const hotBooks = allBooks.filter((book) => {
+                const key = (book?.title || '').trim().toLowerCase();
+                return topCountLevels.includes(titleCounts.get(key));
+            });
+
+            setSearchResults(hotBooks);
+            setVisibleBooks(hotBooks);
+            setNoResults(hotBooks.length === 0);
+        };
+
     //  HELPER FUNCTION: CARD CLICK HANDLER 
     // Navigates to the detailed book page when user clicks a book card
     // Route: /books/:id where :id is the MongoDB _id of the book
@@ -372,7 +411,7 @@ function Home() {
                 <Button title={"Filters"} onClick={handleFiltersClick} />
                 
                 {/* Hot Books button: TODO - will show trending/most-viewed books when implemented */}
-                <Button title={"Hot Books"} />
+                <Button title={"Hot Books"} onClick={handleHotBooks} />
                 
                 {/* Post Book button: only visible if user is logged in */}
                 {/* Navigates to /post-book page where users can list a book for sale */}
