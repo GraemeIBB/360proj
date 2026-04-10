@@ -227,12 +227,19 @@ function Home() {
                 return;
             }
 
-            const topCountLevels = [...new Set(titleCounts.values())]
-                .sort((a, b) => b - a)
-                .slice(0, 3);
+            const topTitles = [...titleCounts.entries()]
+                .sort((a, b) => {
+                    // Sort by frequency (descending), then title (ascending) for deterministic ties.
+                    if (b[1] !== a[1]) return b[1] - a[1];
+                    return a[0].localeCompare(b[0]);
+                })
+                .slice(0, 3)
+                .map(([title]) => title);
+
+            const topTitleSet = new Set(topTitles);
             const hotBooks = allBooks.filter((book) => {
                 const key = (book?.title || '').trim().toLowerCase();
-                return topCountLevels.includes(titleCounts.get(key));
+                return topTitleSet.has(key);
             });
 
             setSearchResults(hotBooks);
