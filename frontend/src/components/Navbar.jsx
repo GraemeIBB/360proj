@@ -3,20 +3,23 @@ import { Link, useNavigate } from 'react-router-dom'
 import './Navbar.css'
 
 function Navbar() {
-  const [notifs, setNotifs] = useState(1)
+  const [notifs, setNotifs] = useState(0)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [profilePicture, setProfilePicture] = useState('')
   const navigate = useNavigate()
 
   useEffect(() => {
-    // TODO: Implement notifications endpoint. For now, suppress the fetch error.
-    fetch("http://localhost:8800/notif")
-      .then(res => res.json())
-      .then(data => setNotifs(data))
-      .catch(err => {
-        // Silently fail if notifications endpoint doesn't exist yet.
-        console.debug('Notifications unavailable:', err.message);
-      });
+    const fetchUnread = () => {
+      const uid = localStorage.getItem('userId');
+      if (!uid) { setNotifs(0); return; }
+      fetch("http://localhost:8800/notif", { headers: { 'x-user-id': uid } })
+        .then(res => res.json())
+        .then(data => setNotifs(data.count ?? 0))
+        .catch(() => setNotifs(0));
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 4000);
+    return () => clearInterval(interval);
   }, [])
 
   useEffect(() => {
@@ -84,7 +87,7 @@ function Navbar() {
           <li><Link to="/">Search</Link></li>
           <li><Link to="/post-book">My Listings</Link></li>
           <li className="navbar-messages-item">
-            <Link to="/">My Messages</Link>
+            <Link to="/messages">My Messages</Link>
             {notifs > 0 && (
               <span className="navbar-notif">{notifs}</span>
             )}

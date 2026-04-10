@@ -90,6 +90,27 @@
 	background: #225ea8;
 }
 
+.login-prompt {
+	color: #555;
+	font-size: 1rem;
+	margin: 0;
+}
+
+.login-link-btn {
+	background: none;
+	border: none;
+	color: #b85c5a;
+	font-size: 1rem;
+	font-weight: 600;
+	cursor: pointer;
+	padding: 0;
+	text-decoration: underline;
+}
+.login-link-btn:hover {
+	color: #a04a48;
+	border-color: transparent;
+}
+
 .sent-confirmation {
 	margin-top: 10px;
 	color: #38a169;
