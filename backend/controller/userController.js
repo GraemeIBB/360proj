@@ -2,6 +2,11 @@ const User = require('../models/User');
 const mongoose = require('mongoose');
 const Joi = require('joi');
 const bcrypt = require('bcrypt');
+const path = require('path');
+const { getBucket } = require('../config/gridfs');
+
+const MIME_MAP = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.gif': 'image/gif', '.webp': 'image/webp' };
+const mimeFromFilename = (filename) => MIME_MAP[path.extname(filename).toLowerCase()] || 'application/octet-stream';
 
 // Request payload validation for creating a user.
 const createUserSchema = Joi.object({
@@ -266,6 +271,83 @@ exports.getUserById = async (req, res) => {
         res.status(200).json(user);
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+};
+
+exports.uploadProfilePicture = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const actorId = req.headers['x-user-id'];
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: 'Invalid user id' });
+        }
+
+        if (!actorId || !mongoose.Types.ObjectId.isValid(actorId)) {
+            return res.status(401).json({ error: 'Authentication required' });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ error: 'No image file uploaded' });
+        }
+
+        const actor = await User.findById(actorId).select('admin');
+        if (!actor) {
+            return res.status(401).json({ error: 'Authentication required' });
+        }
+
+        if (actorId.toString() !== id.toString() && !actor.admin) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        const fileId = new mongoose.Types.ObjectId();
+        await new Promise((resolve, reject) => {
+            const uploadStream = getBucket().openUploadStreamWithId(fileId, req.file.originalname, {
+                metadata: { contentType: req.file.mimetype },
+            });
+            uploadStream.on('finish', resolve);
+            uploadStream.on('error', reject);
+            uploadStream.end(req.file.buffer);
+        });
+
+        const profilePicturePath = `/users/image/${fileId}`;
+        const user = await User.findByIdAndUpdate(
+            id,
+            { $set: { profilePicture: profilePicturePath } },
+            { new: true }
+        ).select('-password -__v');
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        return res.status(200).json({
+            message: 'Profile picture updated',
+            profilePicture: user.profilePicture,
+            user,
+        });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+};
+
+exports.getUserImage = async (req, res) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ error: 'Invalid image id' });
+        }
+
+        const fileId = new mongoose.Types.ObjectId(req.params.id);
+        const files = await getBucket().find({ _id: fileId }).toArray();
+        if (!files.length) {
+            return res.status(404).json({ error: 'Image not found' });
+        }
+
+        const contentType = files[0].metadata?.contentType || mimeFromFilename(files[0].filename);
+        res.setHeader('Content-Type', contentType);
+        getBucket().openDownloadStream(fileId).pipe(res);
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
     }
 };
 
