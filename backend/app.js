@@ -10,6 +10,8 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var booksRouter = require("./routes/books");
 var adminRouter = require("./routes/admin");
+var messagesRouter = require("./routes/messages");
+const messageController = require('./controller/messageController');
 var app = express();
 
 // database connection
@@ -53,6 +55,8 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use("/books", booksRouter);
 app.use("/admin", adminRouter);
+app.use("/messages", messagesRouter);
+app.get("/notif", messageController.getUnreadCount);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

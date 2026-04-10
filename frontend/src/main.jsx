@@ -9,6 +9,7 @@ import ViewBook from './ViewBook.jsx'
 import SignUp from './Sign Up.jsx'
 import UserProfile from './UserProfile.jsx'
 import AdminPanel from './AdminPanel.jsx'
+import Messages from './Messages.jsx'
 // import Books from './Books.jsx'
 
 
@@ -24,6 +25,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/books/:id" element={<ViewBook />} />
         {/* <Route path="/books" element={<Books />} /> */}
         <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/messages" element={<Messages />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

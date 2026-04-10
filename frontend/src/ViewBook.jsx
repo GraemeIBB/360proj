@@ -105,10 +105,30 @@ function ViewBook() {
     }
   };
 
-  const handleSend = () => {
-    setSent(true);
-    setTimeout(() => setSent(false), 2000);
-    setMessage("");
+  const handleSend = async () => {
+    if (!message.trim()) return;
+    const userId = localStorage.getItem('userId');
+    if (!userId) { navigate('/login'); return; }
+    try {
+      const res = await fetch('http://localhost:8800/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+        body: JSON.stringify({
+          recipientId: book.owner._id || book.owner,
+          bookId: book._id,
+          body: message.trim(),
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to send');
+      }
+      setSent(true);
+      setMessage("");
+      setTimeout(() => { setSent(false); navigate('/messages'); }, 1200);
+    } catch (err) {
+      setStatusMsg(err.message || 'Failed to send message');
+    }
   };
 
   // Accept either populated owner object or fallback shapes while backend evolves.
@@ -277,16 +297,25 @@ function ViewBook() {
             {!isOwner && (
               <div className="message-section">
                 <h3>Contact Owner</h3>
-                <textarea
-                  value={message}
-                  onChange={e => setMessage(e.target.value)}
-                  placeholder="Write your message here..."
-                  rows={3}
-                />
-                <button onClick={handleSend} disabled={!message.trim()}>
-                  Send Message
-                </button>
-                {sent && <span className="sent-confirmation" style={{ marginLeft: "10px" }}>Message sent!</span>}
+                {!userId ? (
+                  <p className="login-prompt">
+                    <button className="login-link-btn" onClick={() => navigate('/login')}>Log in</button>
+                    {" "}to contact this seller.
+                  </p>
+                ) : (
+                  <>
+                    <textarea
+                      value={message}
+                      onChange={e => setMessage(e.target.value)}
+                      placeholder="Write your message here..."
+                      rows={3}
+                    />
+                    <button onClick={handleSend} disabled={!message.trim()}>
+                      Send Message
+                    </button>
+                    {sent && <span className="sent-confirmation" style={{ marginLeft: "10px" }}>Message sent!</span>}
+                  </>
+                )}
               </div>
             )}
           </>
