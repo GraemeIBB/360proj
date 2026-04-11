@@ -109,6 +109,9 @@ function SignUp() {
   return (
     <div className="login-container">
       <Header />
+      <div id="login-signup-btn">
+        <Button title="Login" onClick={() => navigate('/login')} />
+      </div>
       <div className="login-form-wrapper">
         <div className="login-form">
           <h1>Create User</h1>

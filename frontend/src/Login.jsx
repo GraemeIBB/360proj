@@ -46,6 +46,9 @@ import './Login.css';
     return (
         <div className="login-container">
             <Header />
+            <div id="login-signup-btn">
+                <Button title="Sign Up" onClick={() => navigate('/signup')} />
+            </div>
             <div id="test"></div>
             <div className="login-form-wrapper">
                 <div className="login-form">
