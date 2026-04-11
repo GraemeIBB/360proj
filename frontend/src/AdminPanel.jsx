@@ -28,6 +28,9 @@ function AdminPanel() {
     const [userSearchBy, setUserSearchBy] = useState('all');
     const [userSearchTerm, setUserSearchTerm] = useState('');
     const [updatingUserId, setUpdatingUserId] = useState('');
+    const [usageRange, setUsageRange] = useState('30d');
+    const [usageStartDate, setUsageStartDate] = useState('');
+    const [usageEndDate, setUsageEndDate] = useState('');
 
     useEffect(() => {
         if (!userId || !isAdmin) {
@@ -59,9 +62,16 @@ function AdminPanel() {
         try {
             if (name === 'accounts') {
                 await fetchAccounts(userSearchTerm, userSearchBy);
-            } else if (name === 'usage' && !stats) {
-                const res = await fetch(`${API}/admin/stats`, { headers });
-                if (!res.ok) throw new Error((await res.json()).error);
+            } else if (name === 'usage') {
+                const qs = new URLSearchParams();
+                qs.set('range', usageRange);
+                if (usageRange === 'custom') {
+                    if (usageStartDate) qs.set('startDate', usageStartDate);
+                    if (usageEndDate) qs.set('endDate', usageEndDate);
+                }
+                const suffix = qs.toString() ? `?${qs.toString()}` : '';
+                const res = await fetch(`${API}/admin/stats${suffix}`, { headers });
+                if (!res.ok) throw new Error((await res.json()).error || 'Failed to fetch usage stats');
                 setStats(await res.json());
             } else if (name === 'storage' && !storage) {
                 const res = await fetch(`${API}/admin/storage`, { headers });
@@ -212,6 +222,32 @@ function AdminPanel() {
                 {tab === 'usage' && !loading && !error && stats && (
                     <div className="admin-section">
                         <h2>Site Usage</h2>
+                        <div className="admin-usage-filters">
+                            <label>
+                                Range
+                                <select value={usageRange} onChange={(e) => setUsageRange(e.target.value)}>
+                                    <option value="7d">Last 7 days</option>
+                                    <option value="30d">Last 30 days</option>
+                                    <option value="90d">Last 90 days</option>
+                                    <option value="all">All time</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </label>
+                            {usageRange === 'custom' && (
+                                <>
+                                    <label>
+                                        Start Date
+                                        <input type="date" value={usageStartDate} onChange={(e) => setUsageStartDate(e.target.value)} />
+                                    </label>
+                                    <label>
+                                        End Date
+                                        <input type="date" value={usageEndDate} onChange={(e) => setUsageEndDate(e.target.value)} />
+                                    </label>
+                                </>
+                            )}
+                            <button onClick={() => fetchTab('usage')}>Apply Filter</button>
+                        </div>
+                        <p className="admin-filter-label">Showing: {stats.filterLabel || 'All time'}</p>
                         <div className="admin-stat-grid">
                             <div className="admin-stat-card">
                                 <span className="stat-value">{stats.totalUsers}</span>
