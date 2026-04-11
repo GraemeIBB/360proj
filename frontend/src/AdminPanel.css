@@ -10,6 +10,7 @@
     margin: 0 auto;
     padding: 32px 24px;
     width: 100%;
+    color: #222;
 }
 
 .admin-content h1 {
@@ -58,6 +59,41 @@
     margin-bottom: 16px;
 }
 
+.admin-account-tools {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.admin-account-tools .search-bar {
+    flex: 1;
+}
+
+.admin-account-tools .search-bar input {
+    color: #222;
+    background: #fff;
+}
+
+.admin-account-tools .search-bar input::placeholder {
+    color: #6e6e6e;
+}
+
+.admin-search-by {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px 10px;
+    background: #fff;
+    color: #222;
+    font-size: 0.9rem;
+    color-scheme: light;
+}
+
+.admin-search-by option {
+    color: #222;
+    background: #fff;
+}
+
 .admin-count {
     font-size: 1rem;
     color: #888;
@@ -74,12 +110,14 @@
     text-align: left;
     padding: 10px 12px;
     background: #f5f5f5;
+    color: #222;
     border-bottom: 2px solid #ddd;
     font-weight: 600;
 }
 
 .admin-table td {
     padding: 9px 12px;
+    color: #222;
     border-bottom: 1px solid #eee;
 }
 
@@ -89,6 +127,33 @@
 
 .admin-yes { color: #27ae60; font-weight: 600; }
 .admin-no  { color: #aaa; }
+.admin-enabled { color: #27ae60; font-weight: 600; }
+.admin-disabled { color: #c0392b; font-weight: 600; }
+
+.admin-action-enable,
+.admin-action-disable {
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    cursor: pointer;
+}
+
+.admin-action-enable {
+    background: #e9f8ef;
+    color: #1f8a4c;
+}
+
+.admin-action-disable {
+    background: #fdeceb;
+    color: #b23a2b;
+}
+
+.admin-action-enable:disabled,
+.admin-action-disable:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
 
 .admin-stat-grid {
     display: grid;

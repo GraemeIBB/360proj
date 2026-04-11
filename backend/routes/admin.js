@@ -6,6 +6,7 @@ const adminController = require('../controller/adminController');
 router.use(requireAdmin);
 
 router.get('/users', adminController.getUsers);
+router.patch('/users/:id/status', adminController.setUserDisabled);
 router.get('/stats', adminController.getStats);
 router.get('/storage', adminController.getStorage);
 

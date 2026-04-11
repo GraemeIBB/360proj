@@ -22,6 +22,10 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid username or password' });
     }
 
+    if (user.isDisabled) {
+      return res.status(403).json({ message: 'This account has been disabled by an administrator' });
+    }
+
     // Compare plaintext password against stored bcrypt hash.
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
