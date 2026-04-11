@@ -223,16 +223,23 @@ function UserProfile() {
             <div className="sidebar-book-list">
               {filtered.map((book) => {
                 const raw = book.coverImage;
-                const coverImage = raw
-                  ? (raw.startsWith('/') ? `http://localhost:8800${raw}` : raw)
-                  : 'https://via.placeholder.com/80x120?text=No+Cover';
+                // Use the same fallback as in ViewBook.jsx
+                const fallback = "http://localhost:8800/images/Book.png";
+                const coverImage = !raw
+                  ? fallback
+                  : (raw.startsWith('/') ? `http://localhost:8800${raw}` : raw);
                 return (
                   <div
                     key={book._id}
                     className="sidebar-book-card"
                     onClick={() => navigate(`/books/${book._id}`)}
                   >
-                    <img src={coverImage} alt={book.title} className="sidebar-book-cover" />
+                    <img
+                      src={coverImage}
+                      alt={book.title}
+                      className="sidebar-book-cover"
+                      onError={e => { e.target.onerror = null; e.target.src = fallback; }}  // Error check  just in case to ensure default image is shown on failure
+                    />
                     <div className="sidebar-book-info">
                       <div className="sidebar-book-title">{book.title}</div>
                       <div className="sidebar-book-author">{book.author}</div>
