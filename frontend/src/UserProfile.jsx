@@ -73,16 +73,21 @@ function UserProfile() {
           const match = users.find((u) => (u.username || '') === cachedUsername);
           if (match) applyUserData(match);
         })
-        .catch(() => {});
+        .catch((err) => {
+          alert(err?.message || 'Failed to fetch user by username');
+        });
     };
 
     fetch(`http://localhost:8800/users/${userId}`, { cache: 'no-store' })
       .then(res => {
-        if (!res.ok) throw new Error();
+        if (!res.ok) throw new Error('Failed to fetch user profile');
         return res.json();
       })
       .then(applyUserData)
-      .catch(fetchByUsernameFallback);
+      .catch((err) => {
+        alert(err?.message || 'Failed to fetch user profile');
+        fetchByUsernameFallback();
+      });
   }, [navigate]);
 
   // Sidebar toggle
@@ -94,8 +99,12 @@ function UserProfile() {
   const [statusMsg, setStatusMsg] = useState('');
 
   // Helper to update user field
+  // Improved: returns {user, error} and sets statusMsg appropriately
   const updateUserField = async (field, value) => {
-    if (!userId) return;
+    if (!userId) {
+      alert('No user ID, sign in first');
+      return { user: null, error: 'No user ID' };
+    }
     setStatusMsg('');
     try {
       const res = await fetch(`http://localhost:8800/users/${userId}`, {
@@ -103,35 +112,52 @@ function UserProfile() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ [field]: value })
       });
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || data.message || 'Update failed');
+        alert(data.error || 'Update failed');
+        setStatusMsg(data.error || 'Update failed');
+        return { user: null, error: data.error || 'Update failed' };
       }
       setStatusMsg('Profile updated!');
+      return { user: data.user, error: null };
     } catch (err) {
+      alert(err.message || 'Update failed');
       setStatusMsg(err.message || 'Update failed');
+      return { user: null, error: err.message || 'Update failed' };
     }
   };
 
   const handleSaveUsername = async () => {
-    await updateUserField('username', tempUsername);
-    setUsername(tempUsername);
-    setEditingUsername(false);
+    const { user, error } = await updateUserField('username', tempUsername);
+    if (!error && user) {
+      setUsername(user.username);
+      setTempUsername(user.username);
+      setEditingUsername(false);
+    }
   };
   const handleSaveEmail = async () => {
-    await updateUserField('email', tempEmail);
-    setEmail(tempEmail);
-    setEditingEmail(false);
+    const { user, error } = await updateUserField('email', tempEmail);
+    if (!error && user) {
+      setEmail(user.email);
+      setTempEmail(user.email);
+      setEditingEmail(false);
+    }
   };
   const handleSavePassword = async () => {
-    await updateUserField('password', tempPassword);
-    setPassword(tempPassword);
-    setEditingPassword(false);
+    const { user, error } = await updateUserField('password', tempPassword);
+    if (!error && user) {
+      setPassword(''); // Don't store password in state
+      setTempPassword('');
+      setEditingPassword(false);
+    }
   };
   const handleSaveLocation = async () => {
-    await updateUserField('location', tempLocation);
-    setLocation(tempLocation);
-    setEditingLocation(false);
+    const { user, error } = await updateUserField('location', tempLocation);
+    if (!error && user) {
+      setLocation(user.location);
+      setTempLocation(user.location);
+      setEditingLocation(false);
+    }
   };
 
   // Cancel handlers
@@ -219,6 +245,7 @@ function UserProfile() {
         </div>
       );
     } catch (err) {
+      alert(err.message || 'Failed to load books');
       setBooksError(err.message || 'Failed to load books');
       setSidebarContent(
         <div>
@@ -266,6 +293,7 @@ function UserProfile() {
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        alert(data?.error || data?.message || 'Failed to upload profile picture');
         throw new Error(data?.error || data?.message || 'Failed to upload profile picture');
       }
 
@@ -275,6 +303,7 @@ function UserProfile() {
       window.dispatchEvent(new Event('storage'));
       setStatusMsg('Profile picture updated!');
     } catch (err) {
+      alert(err.message || 'Failed to upload profile picture');
       setStatusMsg(err.message || 'Failed to upload profile picture');
     } finally {
       event.target.value = '';
