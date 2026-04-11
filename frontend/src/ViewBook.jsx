@@ -65,7 +65,7 @@ function ViewBook() {
     try {
       const res = await fetch(`http://localhost:8800/books/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-user-id': userId || '' },
         body: JSON.stringify({ [editField]: editValue })
       });
       if (!res.ok) {

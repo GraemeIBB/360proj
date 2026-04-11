@@ -176,18 +176,22 @@ exports.updateBook = async (req, res) => {
         });
     }
 
+    const actorId = req.headers['x-user-id'];
+    if (!actorId || !mongoose.Types.ObjectId.isValid(actorId)) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
+
     try {
-        const book = await Book.findById(id);
+        const [book, actor] = await Promise.all([
+            Book.findById(id),
+            User.findById(actorId).select('admin'),
+        ]);
         if (!book) {
             return res.status(404).json({ error: 'Book not found' });
         }
-        // Only owner or admin can update
-        // TODO: bypass for now
-        /*
-        if (!req.user || (book.owner._id.toString() !== req.user.id && !req.user.admin)) {
+        if (book.owner.toString() !== actorId && !actor?.admin) {
             return res.status(403).json({ error: 'Unauthorized' });
         }
-        */
 
         // Only allow updating allowed fields
         const allowedFields = [
