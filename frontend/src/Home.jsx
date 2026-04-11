@@ -201,6 +201,20 @@ function Home() {
             await runSearch(filters);
         };
 
+        const handleFiltersUndo = () => {
+            setTitleFilter("");
+            setAuthorFilter("");
+            setGenreFilter("");
+            setRatingFilter("");
+            setPriceMin("");
+            setPriceMax("");
+            setYearFilter("");
+            setSearchResults([]);
+            setVisibleBooks(allBooks);
+            setNoResults(allBooks.length === 0);
+            setSearchError("");
+        };
+
         //  HELPER FUNCTION: HOT BOOKS FILTER
         // Shows books for the title(s) that currently have the highest listing count.
         const handleHotBooks = () => {
@@ -386,7 +400,7 @@ function Home() {
                                     onChange={(event) => setPriceMax(event.target.value)}
                                 />
             </div>
-            <div className="sidebar-group last-element">
+            <div className="sidebar-group">
                 <label htmlFor="year-filter">Publication Year:</label>
                                 <input
                                     type="number"
@@ -396,9 +410,10 @@ function Home() {
                                     onChange={(event) => setYearFilter(event.target.value)}
                                 />
             </div>
-                        <div className="sidebar-group">
-                                <Button title={"Apply Filters"} onClick={handleSidebarSearch} />
-                        </div>
+            <div className="sidebar-group filter-buttons">
+                <Button title={"Apply Filters"} onClick={handleSidebarSearch} />
+                <Button title={"Undo"} className="undo-btn" onClick={handleFiltersUndo} />
+            </div>
         </Sidebar>
 
         {/*  MAIN CONTENT CONTAINER  */}
