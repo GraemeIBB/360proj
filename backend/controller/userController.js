@@ -94,6 +94,21 @@ exports.createUser = async (req, res) => {
             admin: isAdmin
         });
 
+        // If a profile image was uploaded, store it in GridFS and attach the path.
+        if (req.file) {
+            const fileId = new mongoose.Types.ObjectId();
+            await new Promise((resolve, reject) => {
+                const uploadStream = getBucket().openUploadStreamWithId(fileId, req.file.originalname, {
+                    metadata: { contentType: req.file.mimetype },
+                });
+                uploadStream.on('finish', resolve);
+                uploadStream.on('error', reject);
+                uploadStream.end(req.file.buffer);
+            });
+            newUser.profilePicture = `/users/image/${fileId}`;
+            await newUser.save();
+        }
+
         // Return user without password field
         const userResponse = newUser.toObject();
         delete userResponse.password;

@@ -23,6 +23,6 @@ router.post('/:id/profile-picture', upload.single('profilePicture'), userControl
 router.patch('/:id', userController.updateUser);
 
 // POST /users
-router.post('/', userController.createUser);
+router.post('/', upload.single('profileImage'), userController.createUser);
 
 module.exports = router;
