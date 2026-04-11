@@ -58,7 +58,8 @@
     border-radius: 4px;
     font-size: 14px;
     transition: border-color 0.3s;
-    color: black;
+    color: white;
+    background-color: #222;
 }
 
 input[type="file"]::-webkit-file-upload-button {

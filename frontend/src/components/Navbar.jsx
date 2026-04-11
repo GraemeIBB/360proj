@@ -85,7 +85,6 @@ function Navbar() {
         <ul className="navbar-menu">
           <li><Link to="/">Home</Link></li>
           <li><Link to="/">Search</Link></li>
-          <li><Link to="/post-book">My Listings</Link></li>
           <li className="navbar-messages-item">
             <Link to="/messages">My Messages</Link>
             {notifs > 0 && (

@@ -15,6 +15,13 @@ import Button from './components/Button';
 import './Home.css';
 
 function Home() {
+        // SIDEBAR CONTENT STATE
+        // 'filters' | 'myListings'
+        const [sidebarContent, setSidebarContent] = useState('filters');
+        // User's book postings state for sidebar
+        const [userBooks, setUserBooks] = useState([]);
+        const [loadingUserBooks, setLoadingUserBooks] = useState(false);
+        const [userBooksError, setUserBooksError] = useState('');
     //  REACT HOOKS & ROUTER 
     const navigate = useNavigate();      // Navigation hook for route changes (e.g., /books/:id)
     const sidebarRef = useRef(null);     // Reference to sidebar component for toggle control
@@ -112,11 +119,55 @@ function Home() {
 
     //  HELPER FUNCTION: TOGGLE SIDEBAR 
     // Opens/closes the filter sidebar panel when "Filters" button is clicked
+    // Show filters in sidebar and open if closed
     const handleFiltersClick = () => {
-            // Sidebar exposes advanced filters without leaving the main grid.
-      if (sidebarRef.current) {
-        sidebarRef.current.toggle();
-      }
+        setSidebarContent('filters');
+        if (sidebarRef.current) {
+            // Open sidebar if not open
+            sidebarRef.current.toggle();
+        }
+    };
+
+    // Fetch user's book postings and show in sidebar
+    const handleMyListingsClick = async () => {
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            navigate('/login');
+            return;
+        }
+        
+        if (sidebarContent === 'myListings') {
+            // If already showing listings, just toggle sidebar
+                if (sidebarRef.current) {
+                    sidebarRef.current.toggle();
+                }
+            return;
+        }
+
+        setSidebarContent('myListings');
+        setLoadingUserBooks(true);
+        setUserBooksError('');
+        try {
+            const res = await fetch('http://localhost:8800/books', { cache: 'no-store' });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data?.error || 'Failed to fetch books');
+            const filtered = (Array.isArray(data) ? data : []).filter(
+                (book) => {
+                    if (!book.owner) return false;
+                    if (typeof book.owner === 'string') return book.owner === userId;
+                    if (typeof book.owner === 'object' && book.owner._id) return book.owner._id === userId;
+                    return false;
+                }
+            );
+            setUserBooks(filtered);
+        } catch (err) {
+            setUserBooksError(err.message || 'Failed to load books');
+        } finally {
+            setLoadingUserBooks(false);
+        }
+        if (sidebarRef.current) {
+            sidebarRef.current.toggle();
+        }
     };
 
     //  CORE SEARCH FUNCTION: runSearch 
@@ -329,91 +380,135 @@ function Home() {
         {/* Contains advanced search options: title, author, genre, price range, etc. */}
         {/* Initially hidden; toggled open by "Filters" button */}
         <Sidebar ref={sidebarRef}>
-            <h2>Search Filters</h2>
-            <div className="sidebar-group">
-                <label>Title:</label>
-                                <input
-                                    type="text"
-                                    id="title-filter"
-                                    placeholder="Enter book title"
-                                    value={titleFilter}
-                                    onChange={(event) => setTitleFilter(event.target.value)}
-                                />
-            </div>
-            <div className="sidebar-group">
-                <label>Author:</label>
-                                <input
-                                    type="text"
-                                    id="author-filter"
-                                    placeholder="Enter author name"
-                                    value={authorFilter}
-                                    onChange={(event) => setAuthorFilter(event.target.value)}
-                                />
-            </div>
-            <div className="sidebar-group">
-                <label>Genre:</label>
-                                <select
-                                    id="genre-filter"
-                                    value={genreFilter}
-                                    onChange={(event) => setGenreFilter(event.target.value)}
-                                >
-                    <option value="">Select genre</option>
-                    <option value="fiction">Fiction</option>
-                    <option value="non-fiction">Non-Fiction</option>
-                    <option value="mystery">Mystery</option>
-                    <option value="romance">Romance</option>
-                    <option value="sci-fi">Science Fiction</option>
-                    <option value="fantasy">Fantasy</option>
-                    <option value="other">Other</option>
-                </select>
-            </div>
-            <div className="sidebar-group">
-                <label>Minimum Rating:</label>
-                                <select
-                                    id="rating-filter"
-                                    value={ratingFilter}
-                                    onChange={(event) => setRatingFilter(event.target.value)}
-                                >
-                    <option value="">Any</option>
-                    <option value="1">1 star</option>
-                    <option value="2">2 stars</option>
-                    <option value="3">3 stars</option>
-                    <option value="4">4 stars</option>
-                    <option value="5">5 stars</option>
-                </select>
-            </div>
-            <div className="sidebar-group">
-                <label>Price Range:</label>
-                                <input
-                                    type="number"
-                                    id="price-min"
-                                    placeholder="Min"
-                                    value={priceMin}
-                                    onChange={(event) => setPriceMin(event.target.value)}
-                                />
-                <span> to </span>
-                                <input
-                                    type="number"
-                                    id="price-max"
-                                    placeholder="Max"
-                                    value={priceMax}
-                                    onChange={(event) => setPriceMax(event.target.value)}
-                                />
-            </div>
-            <div className="sidebar-group">
-                <label htmlFor="year-filter">Publication Year:</label>
-                                <input
-                                    type="number"
-                                    id="year-filter"
-                                    placeholder="e.g., 2020"
-                                    value={yearFilter}
-                                    onChange={(event) => setYearFilter(event.target.value)}
-                                />
-            </div>
-            <div className="sidebar-group filter-buttons">
-                <Button title={"Apply Filters"} onClick={handleSidebarSearch} />
-                <Button title={"Undo"} className="undo-btn" onClick={handleFiltersUndo} />
-            </div>
+            {sidebarContent === 'filters' && (
+                <>
+                    <h2>Search Filters</h2>
+                    <div className="sidebar-group">
+                        <label>Title:</label>
+                        <input
+                            type="text"
+                            id="title-filter"
+                            placeholder="Enter book title"
+                            value={titleFilter}
+                            onChange={(event) => setTitleFilter(event.target.value)}
+                        />
+                    </div>
+                    <div className="sidebar-group">
+                        <label>Author:</label>
+                        <input
+                            type="text"
+                            id="author-filter"
+                            placeholder="Enter author name"
+                            value={authorFilter}
+                            onChange={(event) => setAuthorFilter(event.target.value)}
+                        />
+                    </div>
+                    <div className="sidebar-group">
+                        <label>Genre:</label>
+                        <select
+                            id="genre-filter"
+                            value={genreFilter}
+                            onChange={(event) => setGenreFilter(event.target.value)}
+                        >
+                            <option value="">Select genre</option>
+                            <option value="fiction">Fiction</option>
+                            <option value="non-fiction">Non-Fiction</option>
+                            <option value="mystery">Mystery</option>
+                            <option value="romance">Romance</option>
+                            <option value="sci-fi">Science Fiction</option>
+                            <option value="fantasy">Fantasy</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div className="sidebar-group">
+                        <label>Minimum Rating:</label>
+                        <select
+                            id="rating-filter"
+                            value={ratingFilter}
+                            onChange={(event) => setRatingFilter(event.target.value)}
+                        >
+                            <option value="">Any</option>
+                            <option value="1">1 star</option>
+                            <option value="2">2 stars</option>
+                            <option value="3">3 stars</option>
+                            <option value="4">4 stars</option>
+                            <option value="5">5 stars</option>
+                        </select>
+                    </div>
+                    <div className="sidebar-group">
+                        <label>Price Range:</label>
+                        <input
+                            type="number"
+                            id="price-min"
+                            placeholder="Min"
+                            value={priceMin}
+                            onChange={(event) => setPriceMin(event.target.value)}
+                        />
+                        <span> to </span>
+                        <input
+                            type="number"
+                            id="price-max"
+                            placeholder="Max"
+                            value={priceMax}
+                            onChange={(event) => setPriceMax(event.target.value)}
+                        />
+                    </div>
+                    <div className="sidebar-group">
+                        <label htmlFor="year-filter">Publication Year:</label>
+                        <input
+                            type="number"
+                            id="year-filter"
+                            placeholder="e.g., 2020"
+                            value={yearFilter}
+                            onChange={(event) => setYearFilter(event.target.value)}
+                        />
+                    </div>
+                    <div className="sidebar-group filter-buttons">
+                        <Button title={"Apply Filters"} onClick={handleSidebarSearch} />
+                        <Button title={"Undo"} className="undo-btn" onClick={handleFiltersUndo} />
+                    </div>
+                </>
+            )}
+            {sidebarContent === 'myListings' && (
+                <>
+                    <h2>Your Book Postings</h2>
+                    {loadingUserBooks ? (
+                        <p>Loading...</p>
+                    ) : userBooksError ? (
+                        <p className="sidebar-error">{userBooksError}</p>
+                    ) : userBooks.length === 0 ? (
+                        <p>You have no book postings.</p>
+                    ) : (
+                        <div className="sidebar-book-list">
+                            {userBooks.map((book) => {
+                                const raw = book.coverImage;
+                                const fallback = "http://localhost:8800/images/Book.png";
+                                const coverImage = !raw
+                                    ? fallback
+                                    : (raw.startsWith('/') ? `http://localhost:8800${raw}` : raw);
+                                return (
+                                    <div
+                                        key={book._id}
+                                        className="sidebar-book-card"
+                                        onClick={() => navigate(`/books/${book._id}`)}
+                                    >
+                                        <img
+                                            src={coverImage}
+                                            alt={book.title}
+                                            className="sidebar-book-cover"
+                                            onError={e => { e.target.onerror = null; e.target.src = fallback; }}
+                                        />
+                                        <div className="sidebar-book-info">
+                                            <div className="sidebar-book-title">{book.title}</div>
+                                            <div className="sidebar-book-author">{book.author}</div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </>
+            )}
         </Sidebar>
 
         {/*  MAIN CONTENT CONTAINER  */}
@@ -432,13 +527,15 @@ function Home() {
                 {/* Filters button: toggles sidebar panel open/closed for advanced search */}
                 <Button title={"Filters"} onClick={handleFiltersClick} />
                 
-                {/* Hot Books button: TODO - will show trending/most-viewed books when implemented */}
+                {/* Hot Books button: will show trending/most-viewed books */}
                 <Button title={"Hot Books"} onClick={handleHotBooks} />
                 
-                {/* Post Book button: only visible if user is logged in */}
-                {/* Navigates to /post-book page where users can list a book for sale */}
+                {/* My Listings and Post Book buttons: only visible if user is logged in */}
                 {isLoggedIn && (
-                    <Button title={"Post Book"} onClick={() => navigate('/post-book')} />
+                    <>
+                        <Button title={"My Listings"} onClick={handleMyListingsClick} />
+                        <Button title={"Post Book"} onClick={() => navigate('/post-book')} />
+                    </>
                 )}
             </div>
 
