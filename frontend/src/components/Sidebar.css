@@ -52,9 +52,39 @@
   font-weight: 500;
   margin-bottom: 10px;
 }
+  .sidebar-group.filter-buttons {
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding-top: 0px;
+    padding-bottom: 4px;
+    height: auto;
+  }
 
-/* ------------------------ */
+  .sidebar-group.filter-buttons button,
+  .sidebar-group.filter-buttons .button {
+    min-width: 110px;
+    padding: 8px 16px;
+    font-size: 1em;
+    margin: 0;
+    box-shadow: none;
+  }
 
+  .sidebar-group.filter-buttons .undo-btn {
+    background: #e0e0e0;
+    color: #b85c5a;
+    border: 1px solid #b85c5a;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: background 0.2s, color 0.2s;
+  }
+  .sidebar-group.filter-buttons .undo-btn:hover {
+    background: #b85c5a;
+    color: #fff;
+  }
 .sidebar-toggle {
   position: fixed;
   top: 10%;
@@ -153,6 +183,6 @@
   margin: 0 5px;
 }
 
-.last-element {
-  margin-bottom: 50px;
+.sidebar-content {
+  padding-bottom: 60px; /* Ensures last element is not cut off at the bottom */
 }
