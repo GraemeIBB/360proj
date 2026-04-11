@@ -7,6 +7,56 @@ function escapeRegex(value) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function buildUsageDateFilter(query) {
+    const range = (query.range || 'all').toLowerCase();
+    const now = new Date();
+
+    if (!['all', '7d', '30d', '90d', 'custom'].includes(range)) {
+        throw new Error('Invalid range value');
+    }
+
+    if (range === 'all') {
+        return { createdAt: null, label: 'All time' };
+    }
+
+    if (range === 'custom') {
+        const startDate = query.startDate ? new Date(query.startDate) : null;
+        const endDate = query.endDate ? new Date(query.endDate) : null;
+
+        if (startDate && Number.isNaN(startDate.getTime())) {
+            throw new Error('Invalid startDate value');
+        }
+        if (endDate && Number.isNaN(endDate.getTime())) {
+            throw new Error('Invalid endDate value');
+        }
+        if (startDate && endDate && startDate > endDate) {
+            throw new Error('startDate cannot be later than endDate');
+        }
+
+        const createdAt = {};
+        if (startDate) createdAt.$gte = startDate;
+        if (endDate) {
+            const inclusiveEnd = new Date(endDate);
+            inclusiveEnd.setHours(23, 59, 59, 999);
+            createdAt.$lte = inclusiveEnd;
+        }
+
+        return {
+            createdAt: Object.keys(createdAt).length ? createdAt : null,
+            label: 'Custom range',
+        };
+    }
+
+    const days = Number(range.replace('d', ''));
+    const startDate = new Date(now);
+    startDate.setDate(now.getDate() - days);
+
+    return {
+        createdAt: { $gte: startDate, $lte: now },
+        label: `Last ${days} days`,
+    };
+}
+
 exports.getUsers = async (req, res) => {
     try {
         const q = (req.query.q || '').trim();
@@ -101,18 +151,23 @@ exports.setUserDisabled = async (req, res) => {
 
 exports.getStats = async (req, res) => {
     try {
+        const usageFilter = buildUsageDateFilter(req.query);
+        const createdAtMatch = usageFilter.createdAt ? { createdAt: usageFilter.createdAt } : {};
+
         const [totalUsers, totalBooks, genreBreakdown, conditionBreakdown, availableCount] = await Promise.all([
-            User.countDocuments(),
-            Book.countDocuments(),
+            User.countDocuments(createdAtMatch),
+            Book.countDocuments(createdAtMatch),
             Book.aggregate([
+                ...(usageFilter.createdAt ? [{ $match: { createdAt: usageFilter.createdAt } }] : []),
                 { $group: { _id: '$genre', count: { $sum: 1 } } },
                 { $sort: { count: -1 } },
             ]),
             Book.aggregate([
+                ...(usageFilter.createdAt ? [{ $match: { createdAt: usageFilter.createdAt } }] : []),
                 { $group: { _id: '$condition', count: { $sum: 1 } } },
                 { $sort: { count: -1 } },
             ]),
-            Book.countDocuments({ isAvailable: true }),
+            Book.countDocuments({ isAvailable: true, ...createdAtMatch }),
         ]);
 
         res.status(200).json({
@@ -122,8 +177,12 @@ exports.getStats = async (req, res) => {
             unavailableBooks: totalBooks - availableCount,
             genreBreakdown,
             conditionBreakdown,
+            filterLabel: usageFilter.label,
         });
     } catch (err) {
+        if (err.message.includes('Invalid') || err.message.includes('cannot be later')) {
+            return res.status(400).json({ error: err.message });
+        }
         res.status(500).json({ error: err.message });
     }
 };

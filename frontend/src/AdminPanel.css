@@ -59,6 +59,46 @@
     margin-bottom: 16px;
 }
 
+.admin-usage-filters {
+    display: flex;
+    gap: 12px;
+    align-items: end;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.admin-usage-filters label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: #444;
+}
+
+.admin-usage-filters select,
+.admin-usage-filters input {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px 10px;
+    background: #fff;
+    color: #222;
+    min-width: 150px;
+}
+
+.admin-usage-filters button {
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    background: #b85c5a;
+    color: #fff;
+}
+
+.admin-filter-label {
+    margin: 0 0 14px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
 .admin-account-tools {
     display: flex;
     gap: 12px;
