@@ -17,10 +17,34 @@ function Navbar() {
         .then(data => setNotifs(data.count ?? 0))
         .catch(() => setNotifs(0));
     };
+
+    const syncDisabledStatus = () => {
+      const uid = localStorage.getItem('userId');
+      if (!uid) return;
+
+      fetch(`http://localhost:8800/users/${uid}`, { cache: 'no-store' })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((user) => {
+          if (user?.isDisabled) {
+            localStorage.removeItem('userId');
+            localStorage.removeItem('username');
+            localStorage.removeItem('profilePicture');
+            localStorage.removeItem('isAdmin');
+            window.dispatchEvent(new Event('storage'));
+            navigate('/login');
+          }
+        })
+        .catch(() => {});
+    };
+
     fetchUnread();
-    const interval = setInterval(fetchUnread, 4000);
+    syncDisabledStatus();
+    const interval = setInterval(() => {
+      fetchUnread();
+      syncDisabledStatus();
+    }, 4000);
     return () => clearInterval(interval);
-  }, [])
+  }, [navigate])
 
   useEffect(() => {
     const syncLoginState = async () => {
@@ -62,6 +86,7 @@ function Navbar() {
     localStorage.removeItem('userId')
     localStorage.removeItem('username')
     localStorage.removeItem('profilePicture')
+    localStorage.removeItem('isAdmin')
     // Notify same-tab listeners that auth state changed.
     window.dispatchEvent(new Event('storage'))
     navigate('/')

@@ -3,7 +3,7 @@ import './SearchBar.css';
 import {Search} from 'lucide-react';
 
 
-function SearchBar({ onSearch }){
+function SearchBar({ onSearch, placeholder = "Search Books" }){
     const [query, setQuery] = useState("");
 
 
@@ -22,7 +22,7 @@ function SearchBar({ onSearch }){
         <form className="search-bar" onSubmit={handleSubmit}>
             <input
                 type="text"
-                placeholder="Search Books"
+                placeholder={placeholder}
                 value={query}
                 onChange={handleChange}
             />
