@@ -53,7 +53,7 @@
 .message-section h3 {
 	margin-top: 0;
 	margin-bottom: 10px;
-	color: #2b6cb0;
+	color: #b85c5a;
 	font-size: 1.2rem;
 }
 
@@ -68,12 +68,12 @@
 	transition: border 0.2s;
 }
 .message-section textarea:focus {
-	border: 1.5px solid #3182ce;
+	border: 1.5px solid #b85c5a;
 	outline: none;
 }
 
 .message-section button {
-	background: #3182ce;
+	background: #b85c5a;
 	color: #fff;
 	border: none;
 	border-radius: 6px;
@@ -83,11 +83,11 @@
 	transition: background 0.2s;
 }
 .message-section button:disabled {
-	background: #b5c9e8;
+	background: #d4a09e;
 	cursor: not-allowed;
 }
 .message-section button:not(:disabled):hover {
-	background: #225ea8;
+	background: #a04a48;
 }
 
 .login-prompt {
@@ -124,7 +124,7 @@
 	min-width: 80px;
 	padding: 7px 16px;
 	margin-left: 8px;
-	background: #3182ce;
+	background: #b85c5a;
 	color: #fff;
 	border: none;
 	border-radius: 6px;
@@ -135,10 +135,10 @@
 	vertical-align: middle;
 }
 .edit-btn:hover:not(:disabled) {
-	background: #225ea8;
+	background: #a04a48;
 }
 .edit-btn:disabled {
-	background: #b5c9e8;
+	background: #d4a09e;
 	cursor: not-allowed;
 }
 
@@ -168,7 +168,7 @@
 .edit-input {
 	font-size: 1rem;
 	padding: 7px 10px;
-	border: 1.5px solid #3182ce;
+	border: 1.5px solid #b85c5a;
 	border-radius: 5px;
 	margin-right: 8px;
 	min-width: 120px;
@@ -177,8 +177,8 @@
 }
 .edit-input:focus {
 	outline: none;
-	border-color: #225ea8;
-	box-shadow: 0 0 4px rgba(49, 130, 206, 0.15);
+	border-color: #a04a48;
+	box-shadow: 0 0 4px rgba(184, 92, 90, 0.2);
 }
 .title-input {
 	font-size: 1.2em;

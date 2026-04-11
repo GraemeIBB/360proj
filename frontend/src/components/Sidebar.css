@@ -160,7 +160,8 @@
 
 .sidebar-group input,
 .sidebar-group select {
-  color: white;
+  color: #222;
+  background: #fff;
   width: 90%;
   padding: 8px 4px;
   border: 1px solid #ccc;

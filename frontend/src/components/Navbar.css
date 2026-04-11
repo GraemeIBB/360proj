@@ -109,8 +109,50 @@
 	border-radius: 0.4rem;
 	cursor: pointer;
 	font-size: 0.85rem;
+	transition: background 0.2s;
 }
 
 .navbar-logout:hover {
-	opacity: 0.85;
+	background: rgba(0, 0, 0, 0.2);
+	border-color: white;
+}
+
+.navbar-post-btn,
+.navbar-admin-btn,
+.navbar-signin-btn,
+.navbar-signup-btn {
+	padding: 0.4rem 0.85rem;
+	border-radius: 0.4rem;
+	font-size: 0.85rem;
+	font-weight: 600;
+	text-decoration: none;
+	transition: background 0.2s;
+}
+
+.navbar-post-btn {
+	background: white;
+	color: rgb(184, 92, 90);
+}
+
+.navbar-admin-btn {
+	border: 1px solid white;
+	color: white;
+}
+
+.navbar-signin-btn {
+	border: 1px solid white;
+	color: white;
+}
+
+.navbar-signup-btn {
+	background: white;
+	color: rgb(184, 92, 90);
+}
+
+.navbar-post-btn:hover,
+.navbar-admin-btn:hover,
+.navbar-signin-btn:hover,
+.navbar-signup-btn:hover {
+	background: rgba(0, 0, 0, 0.2);
+	color: white;
 }
