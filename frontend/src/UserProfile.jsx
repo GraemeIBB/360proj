@@ -36,7 +36,6 @@ function UserProfile() {
   const [tempLocation, setTempLocation] = useState('');
 
   // Sidebar state
-  const [sidebarContent, setSidebarContent] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Load user data on mount
@@ -166,24 +165,6 @@ function UserProfile() {
   const handleCancelPassword = () => { setTempPassword(''); setEditingPassword(false); };
   const handleCancelLocation = () => { setTempLocation(location); setEditingLocation(false); };
 
-  // Sidebar content actions (unchanged)
-  const handleViewTransactionHistory = () => {
-    // TODO: implement viewing the transaction history in the sidebar
-    setSidebarContent(
-      <div>
-        <h2>Your Transaction History</h2>
-        <p>Here you can view your past transactions.</p>
-      </div>
-    );
-
-    // Only toggle if we aren't already looking at transactions
-    if (sidebarRef.current && isSidebarOpen && viewMode !== 'transactions') {
-      // don't toggle since we're already open, just update content
-    } else {
-      sidebarRef.current.toggle();
-    }
-    setViewMode('transactions');
-  };
 
   // Book postings state
   const [userBooks, setUserBooks] = useState([]);
@@ -191,17 +172,16 @@ function UserProfile() {
   const [booksError, setBooksError] = useState('');
   const [viewMode, setViewMode] = useState('');
 
-  const handleViewBookPostings = async () => {
+  // Fetch and show book postings in sidebar
+  const fetchAndSetBookPostings = async () => {
     setLoadingBooks(true);
     setBooksError('');
     try {
       const res = await fetch('http://localhost:8800/books', { cache: 'no-store' });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Failed to fetch books');
-      // If we fetched a data array, filter the results to only include books postings owned by the user
       const filtered = (Array.isArray(data) ? data : []).filter(
         (book) => {
-          // book.owner can be string or object with _id
           if (!book.owner) return false;
           if (typeof book.owner === 'string') return book.owner === userId;
           if (typeof book.owner === 'object' && book.owner._id) return book.owner._id === userId;
@@ -209,67 +189,22 @@ function UserProfile() {
         }
       );
       setUserBooks(filtered);
-      setSidebarContent(
-        <div>
-          <h2>Your Book Postings</h2>
-          {loadingBooks ? (
-            <p>Loading...</p>
-          ) : booksError ? (
-            <p className="sidebar-error">{booksError}</p>
-          ) : filtered.length === 0 ? (
-            <p>You have no book postings.</p>
-          ) : (
-            // Display list of user's book postings as clickable cards that navigate to the book details page
-            <div className="sidebar-book-list">
-              {filtered.map((book) => {
-                const raw = book.coverImage;
-                // Use the same fallback as in ViewBook.jsx
-                const fallback = "http://localhost:8800/images/Book.png";
-                const coverImage = !raw
-                  ? fallback
-                  : (raw.startsWith('/') ? `http://localhost:8800${raw}` : raw);
-                return (
-                  <div
-                    key={book._id}
-                    className="sidebar-book-card"
-                    onClick={() => navigate(`/books/${book._id}`)}
-                  >
-                    <img
-                      src={coverImage}
-                      alt={book.title}
-                      className="sidebar-book-cover"
-                      onError={e => { e.target.onerror = null; e.target.src = fallback; }}  // Error check  just in case to ensure default image is shown on failure
-                    />
-                    <div className="sidebar-book-info">
-                      <div className="sidebar-book-title">{book.title}</div>
-                      <div className="sidebar-book-author">{book.author}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      );
     } catch (err) {
       alert(err.message || 'Failed to load books');
       setBooksError(err.message || 'Failed to load books');
-      setSidebarContent(
-        <div>
-          <h2>Your Book Postings</h2>
-          <p className="sidebar-error">{err.message || 'Failed to load books'}</p>
-        </div>
-      );
     } finally {
       setLoadingBooks(false);
     }
-    // Only toggle if we aren't already looking at book postings
-    if (sidebarRef.current && isSidebarOpen && viewMode === 'bookPostings') {
-      // already open and correct view
-    } else {
+  };
+
+  // Fetch user book postings on mount so they're ready when sidebar opens
+  useEffect(() => {
+    fetchAndSetBookPostings();
+  }, []);
+
+  // Button handler: open sidebar if not open, always refresh book postings
+  const handleViewBookPostings = async () => {
       sidebarRef.current.toggle();
-    }
-    setViewMode('bookPostings');
   };
   const handleChangeProfilePicture = () => {
     if (profileFileInputRef.current) {
@@ -326,7 +261,44 @@ function UserProfile() {
     <div className={`user-profile-container${isSidebarOpen ? ' sidebar-open' : ''}`}>
       <Header />
       <Sidebar ref={sidebarRef} onToggle={handleSidebarToggle}>
-        {sidebarContent}
+        <div>
+          <h2>Your Book Postings</h2>
+          {loadingBooks ? (
+            <p>Loading...</p>
+          ) : booksError ? (
+            <p className="sidebar-error">{booksError}</p>
+          ) : userBooks.length === 0 ? (
+            <p>You have no book postings.</p>
+          ) : (
+            <div className="sidebar-book-list">
+              {userBooks.map((book) => {
+                const raw = book.coverImage;
+                const fallback = "http://localhost:8800/images/Book.png";
+                const coverImage = !raw
+                  ? fallback
+                  : (raw.startsWith('/') ? `http://localhost:8800${raw}` : raw);
+                return (
+                  <div
+                    key={book._id}
+                    className="sidebar-book-card"
+                    onClick={() => navigate(`/books/${book._id}`)}
+                  >
+                    <img
+                      src={coverImage}
+                      alt={book.title}
+                      className="sidebar-book-cover"
+                      onError={e => { e.target.onerror = null; e.target.src = fallback; }}
+                    />
+                    <div className="sidebar-book-info">
+                      <div className="sidebar-book-title">{book.title}</div>
+                      <div className="sidebar-book-author">{book.author}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </Sidebar>
       <div className="profile-content">
         <h1>User Profile</h1>
@@ -454,10 +426,6 @@ function UserProfile() {
         </div>
 
         <div className="action-buttons">
-          <Button
-            title="View Transaction History"
-            onClick={handleViewTransactionHistory}
-          />
           <Button
             title="View Your Book Postings"
             onClick={handleViewBookPostings}
