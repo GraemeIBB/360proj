@@ -62,6 +62,7 @@ function Navbar() {
     localStorage.removeItem('userId')
     localStorage.removeItem('username')
     localStorage.removeItem('profilePicture')
+    localStorage.removeItem('isAdmin')
     // Notify same-tab listeners that auth state changed.
     window.dispatchEvent(new Event('storage'))
     navigate('/')
