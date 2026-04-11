@@ -365,16 +365,6 @@ function Home() {
             <Navbar />
         </div>
 
-                {/*  LOGIN/SIGNUP BUTTONS (UNAUTHENTICATED USERS ONLY)  */}
-                {/* Only show Sign In / Sign Up buttons if user is NOT logged in */}
-                {/* These buttons allow unauthenticated users to navigate to login/signup pages */}
-                {!isLoggedIn && (
-                    <div id="login-buttons">
-                            {/* TODO: make the blue border around these buttons go away */}
-                            <div id="sign-in-button"><Button title={ "Sign In" } onClick={() => navigate('/login')} /></div>
-                            <div id="sign-up-button"><Button title={ "Sign Up" } onClick={() => navigate('/signup')} /></div>
-                    </div>
-                )}
         
         {/*  SIDEBAR: COLLAPSIBLE FILTER PANEL  */}
         {/* Contains advanced search options: title, author, genre, price range, etc. */}
@@ -530,13 +520,6 @@ function Home() {
                 {/* Hot Books button: will show trending/most-viewed books */}
                 <Button title={"Hot Books"} onClick={handleHotBooks} />
                 
-                {/* My Listings and Post Book buttons: only visible if user is logged in */}
-                {isLoggedIn && (
-                    <>
-                        <Button title={"My Listings"} onClick={handleMyListingsClick} />
-                        <Button title={"Post Book"} onClick={() => navigate('/post-book')} />
-                    </>
-                )}
             </div>
 
                         {/*  STATUS MESSAGES SECTION  */}

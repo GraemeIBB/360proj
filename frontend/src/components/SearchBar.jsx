@@ -15,7 +15,6 @@ function SearchBar({ onSearch, placeholder = "Search Books" }){
         if (onSearch) {
             onSearch(query);
         }
-        setQuery("");
     }
 
     return (

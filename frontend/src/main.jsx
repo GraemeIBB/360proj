@@ -10,6 +10,7 @@ import SignUp from './Sign Up.jsx'
 import UserProfile from './UserProfile.jsx'
 import AdminPanel from './AdminPanel.jsx'
 import Messages from './Messages.jsx'
+import MyListings from './MyListings.jsx'
 // import Books from './Books.jsx'
 
 
@@ -26,6 +27,7 @@ createRoot(document.getElementById('root')).render(
         {/* <Route path="/books" element={<Books />} /> */}
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/messages" element={<Messages />} />
+        <Route path="/my-listings" element={<MyListings />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

@@ -4,22 +4,16 @@
     min-height: 100vh;
 }
 
-#login-signup-btn {
-    position: absolute;
-    top: 10%;
-    right: 1%;
-}
-
 .login-form-wrapper {
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 40px 20px;
+    padding: 40px 20px 80px;
 }
 
 .login-form {
-    background-color: #f5f5f5;
+    background-color: #fff;
     border-radius: 8px;
     padding: 40px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -57,45 +51,64 @@
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
-    transition: border-color 0.3s;
-    color: white;
-    background-color: #222;
-}
-
-input[type="file"]::-webkit-file-upload-button {
-    color: black;
-}
-input[type="file"]::file-selector-button {
-    color: black;
+    color: #333;
+    background-color: #fff;
+    transition: border-color 0.2s;
+    font-family: inherit;
 }
 
 .form-group input:focus {
     outline: none;
-    border-color: #4CAF50;
-    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+    border-color: #b85c5a;
+    box-shadow: 0 0 0 3px rgba(184, 92, 90, 0.15);
 }
 
 .form-group input::placeholder {
-    color: #999;
+    color: #aaa;
+}
+
+input[type="file"]::-webkit-file-upload-button,
+input[type="file"]::file-selector-button {
+    color: #333;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+
+.status-message {
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+}
+.status-message.success {
+    background: #e6f4ea;
+    color: #2d7a3a;
+}
+.status-message.error {
+    background: #fdecea;
+    color: #b94444;
 }
 
 #button {
-    padding: 12px;
+    padding: 12px 28px;
     margin-top: 10px;
-    background-color: rgb(160, 92, 90);
+    background-color: #b85c5a;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.2s;
 }
 
 #button:hover {
-    background-color: #45a049;
+    background-color: #a04a48;
 }
 
 #button:active {
-    background-color: #3d8b40;
+    background-color: #8a3a38;
 }

@@ -30,6 +30,7 @@ const searchBooksSchema = Joi.object({
     startDate: Joi.date().optional(),
     endDate: Joi.date().optional(),
     author: Joi.string().trim().optional(),
+    owner: Joi.string().trim().optional(),
 });
 
 // Validation schema for updating a book (at least one field required)
@@ -307,6 +308,11 @@ exports.searchBooks = async (req, res) => {
             }
             if(author){
                 query.author = { $regex: author, $options: 'i' }; // Case-insensitive regex search for author.
+            }
+            if(value.owner && mongoose.Types.ObjectId.isValid(value.owner)){
+                query.owner = value.owner;
+                // When filtering by owner, include unavailable books too so they see their full listings.
+                delete query.isAvailable;
             }
             // Include owner username for frontend display.
             const books = await Book.find(query).populate('owner', 'username'); // Include owner's username in results.

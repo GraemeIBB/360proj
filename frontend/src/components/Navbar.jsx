@@ -100,6 +100,8 @@ function Navbar() {
     navigate('/login')
   }
 
+  const isAdmin = localStorage.getItem('isAdmin') === 'true'
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
@@ -108,10 +110,10 @@ function Navbar() {
         </div>
 
         <ul className="navbar-menu">
-          <li><Link to="/">Home</Link></li>
-          <li><Link to="/">Search</Link></li>
+          <li><Link to="/">Browse</Link></li>
+          <li><Link to={isLoggedIn ? "/my-listings" : "/login"}>My Listings</Link></li>
           <li className="navbar-messages-item">
-            <Link to="/messages">My Messages</Link>
+            <Link to={isLoggedIn ? "/messages" : "/login"}>Messages</Link>
             {notifs > 0 && (
               <span className="navbar-notif">{notifs}</span>
             )}
@@ -119,17 +121,26 @@ function Navbar() {
         </ul>
 
         <div className="navbar-actions">
-          {isLoggedIn && (
-            <button className="navbar-logout" onClick={handleLogout}>
-              Logout
-            </button>
+          {isLoggedIn ? (
+            <>
+              <Link to="/post-book" className="navbar-post-btn">+ Post Book</Link>
+              {isAdmin && (
+                <Link to="/admin" className="navbar-admin-btn">Admin</Link>
+              )}
+              <button className="navbar-logout" onClick={handleLogout}>Logout</button>
+              <button className="navbar-profile" onClick={handleProfileClick} title="View Profile">
+                <img
+                  src={profilePicture ? (profilePicture.startsWith('/') ? `http://localhost:8800${profilePicture}` : profilePicture) : 'https://placehold.co/40x40'}
+                  alt="Profile"
+                />
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="navbar-signin-btn">Sign In</Link>
+              <Link to="/signup" className="navbar-signup-btn">Sign Up</Link>
+            </>
           )}
-          <button className="navbar-profile" onClick={handleProfileClick} title="View Profile">
-            <img
-              src={profilePicture ? (profilePicture.startsWith('/') ? `http://localhost:8800${profilePicture}` : profilePicture) : 'https://placehold.co/40x40'}
-              alt="Profile"
-            />
-          </button>
         </div>
       </div>
     </nav>

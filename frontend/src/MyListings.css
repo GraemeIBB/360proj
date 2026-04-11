@@ -1,0 +1,119 @@
+.my-listings-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px 60px;
+}
+
+.my-listings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.my-listings-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #222;
+}
+
+.post-book-btn {
+  background: #b85c5a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.post-book-btn:hover {
+  background: #a04a48;
+}
+
+.my-listings-status {
+  text-align: center;
+  color: #666;
+  margin-top: 40px;
+  font-size: 1rem;
+}
+.my-listings-error { color: #c0392b; }
+
+.my-listings-empty {
+  text-align: center;
+  margin-top: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #666;
+}
+
+.my-listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.my-listing-card {
+  background: #fff;
+  border: 1px solid #e7e1de;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.my-listing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.13);
+}
+
+.my-listing-cover {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+  background: #f3efec;
+}
+
+.my-listing-info {
+  padding: 14px;
+}
+
+.my-listing-title {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #222;
+}
+.my-listing-meta {
+  margin: 0 0 4px;
+  font-size: 0.88rem;
+  color: #666;
+}
+.my-listing-price {
+  margin: 8px 0 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2f3d2f;
+}
+
+.my-listing-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+.my-listing-badge.available {
+  background: #e6f4ea;
+  color: #2d7a3a;
+}
+.my-listing-badge.unavailable {
+  background: #fdecea;
+  color: #b94444;
+}
