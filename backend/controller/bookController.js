@@ -48,115 +48,57 @@ const updateBookSchema = Joi.object({
 }).min(1); // At least one field required
 
 
+const bookService = require('../services/bookService');
+
 // CREATE BOOK
-exports.createBook = async (req, res) => { 
-  try {
-        // Validate payload before touching DB.
-        // .validate() checks req.body against createBookSchema and returns { error, value }.
-        const { error, value } = createBookSchema.validate(req.body, {
-            // false = collect all validation issues instead of stopping at the first one.
-            abortEarly: false,
-            // true = remove fields not defined in the schema.
-            stripUnknown: true,
-                        // No convert option here, so createBook keeps strict type checking.
+exports.createBook = async (req, res) => {
+    // Validate payload before touching DB.
+    const { error, value } = createBookSchema.validate(req.body, {
+        abortEarly: false,
+        stripUnknown: true,
+    });
+    if (error) {
+        return res.status(400).json({
+            error: "Invalid createBook payload",
+            details: error.details.map((d) => d.message),
         });
-
-        if (error) {
-            return res.status(400).json({
-                error: "Invalid createBook payload",
-                details: error.details.map((d) => d.message),//takes detailed error objects
-                                                            //->readable messages
-            });
-        }
-
-        const {
-      title,
-      author,
-      description,
-      publishedDate,
-      isbn,
-            genre,
-      condition,
-      price
-        } = value; // Use validated/sanitized request values.
-
-        // Prefer authenticated identity when available, otherwise allow explicit owner id from request payload.
-        const ownerId = req.user?.id || req.body.owner || req.body.userId;
-        if (!ownerId || !mongoose.Types.ObjectId.isValid(ownerId)) {
-            return res.status(400).json({ error: "Missing or invalid owner id" });
-        }
-
-
-        // Upload image to GridFS if a file was included, otherwise use Book.png as default.
-        let coverImage = null;
-        if (req.file) {
-            const fileId = new mongoose.Types.ObjectId();
-            await new Promise((resolve, reject) => {
-                const uploadStream = getBucket().openUploadStreamWithId(fileId, req.file.originalname, {
-                    metadata: { contentType: req.file.mimetype },
-                });
-                uploadStream.on('finish', resolve);
-                uploadStream.on('error', reject);
-                uploadStream.end(req.file.buffer);
-            });
-            coverImage = `/books/image/${fileId}`;
-        } else {
-            // Use static Book.png in public/images as default
-            coverImage = '/images/Book.png';
-        }
-
-        const newBook = await Book.create({
-            title,
-            author,
-            description,
-            publishedDate,
-            isbn,
-            genre,
-            condition,
-            price,
-            owner: ownerId,
-            coverImage,
-        });
-
-        res.status(201).json(newBook); // 201 Created + created book payload.
-
-  } catch (err) {
-        res.status(500).json({ error: err.message }); // Unexpected server error.
-  }
-};
-
-exports.deleteBook = async (req, res) => {
-    try{
-        const actorId = req.user?.id || req.headers['x-user-id'];
-        if (!actorId || !mongoose.Types.ObjectId.isValid(actorId)) {
-            return res.status(401).json({ error: "Authentication required" });
-        }
-
-        const actor = await User.findById(actorId).select('admin');
-        if (!actor) {
-            return res.status(401).json({ error: "Authentication required" });
-        }
-
-        // Reject malformed ids before querying MongoDB.
-        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-            return res.status(400).json({ error: "Invalid book id" });
-        }
-
-        const book = await Book.findById(req.params.id);
-        if(!book){
-            return res.status(404).json({ error: "Book not found" });
-        }
-        // Allow delete for owner or admin only.
-        if(book.owner.toString() !== actorId.toString() && !actor.admin){
-            return res.status(403).json({ error: "Unauthorized" });
     }
-        // Hard delete the selected book document.
-        await Book.findByIdAndDelete(req.params.id);
-        res.status(200).json({ message: "Book deleted successfully" });
+    const ownerId = req.user?.id || req.body.owner || req.body.userId;
+    if (!ownerId || !mongoose.Types.ObjectId.isValid(ownerId)) {
+        return res.status(400).json({ error: "Missing or invalid owner id" });
+    }
+    try {
+        const newBook = await bookService.createBookService(value, req.file, ownerId);
+        res.status(201).json(newBook);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
-}
+};
+
+exports.deleteBook = async (req, res) => {
+    const actorId = req.user?.id || req.headers['x-user-id'];
+    if (!actorId || !mongoose.Types.ObjectId.isValid(actorId)) {
+        return res.status(401).json({ error: "Authentication required" });
+    }
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return res.status(400).json({ error: "Invalid book id" });
+    }
+    try {
+        const result = await bookService.deleteBookService(req.params.id, actorId);
+        res.status(200).json(result);
+    } catch (err) {
+        if (err.code === 401) {
+            return res.status(401).json({ error: err.message });
+        }
+        if (err.code === 403) {
+            return res.status(403).json({ error: err.message });
+        }
+        if (err.code === 404) {
+            return res.status(404).json({ error: err.message });
+        }
+        res.status(500).json({ error: err.message });
+    }
+};
 
 // PATCH /books/:id - Update book fields
 exports.updateBook = async (req, res) => {
@@ -164,8 +106,6 @@ exports.updateBook = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ error: 'Invalid book id' });
     }
-
-    // Validate input
     const { error, value } = updateBookSchema.validate(req.body, {
         abortEarly: false,
         stripUnknown: true,
@@ -176,152 +116,68 @@ exports.updateBook = async (req, res) => {
             details: error.details.map((d) => d.message),
         });
     }
-
     const actorId = req.headers['x-user-id'];
     if (!actorId || !mongoose.Types.ObjectId.isValid(actorId)) {
         return res.status(401).json({ error: 'Authentication required' });
     }
-
     try {
-        const [book, actor] = await Promise.all([
-            Book.findById(id),
-            User.findById(actorId).select('admin'),
-        ]);
-        if (!book) {
-            return res.status(404).json({ error: 'Book not found' });
-        }
-        if (book.owner.toString() !== actorId && !actor?.admin) {
-            return res.status(403).json({ error: 'Unauthorized' });
-        }
-
-        // Only allow updating allowed fields
-        const allowedFields = [
-            'title', 'author', 'description', 'publishedDate', 'isbn', 'genre', 'condition', 'price', 'coverImage', 'isAvailable'
-        ];
-        const update = {};
-        for (const key of allowedFields) {
-            if (value[key] !== undefined) update[key] = value[key];
-        }
-
-        const updatedBook = await Book.findByIdAndUpdate(
-            id,
-            { $set: update },
-            { new: true, runValidators: true, context: 'query' }
-        );
-
-        if (!updatedBook) {
-            return res.status(404).json({ error: 'Book not found after update' });
-        }
+        const updatedBook = await bookService.updateBookService(id, value, actorId);
         res.status(200).json({ message: 'Book updated', book: updatedBook });
     } catch (err) {
+        if (err.code === 401) {
+            return res.status(401).json({ error: err.message });
+        }
+        if (err.code === 403) {
+            return res.status(403).json({ error: err.message });
+        }
+        if (err.code === 404) {
+            return res.status(404).json({ error: err.message });
+        }
         res.status(500).json({ error: err.message });
     }
 };
 
 exports.getAllBooks = async (req, res) => {
-    try{
-        // Return only currently available books.
-        const books = await Book.find({ isAvailable: true }).populate('owner', 'username');
-        // Populate owner with username for easier frontend rendering.
-        res.status(200).json(books); // Send available books as JSON.
-    }catch (err) {
+    try {
+        const books = await bookService.getAllBooksService();
+        res.status(200).json(books);
+    } catch (err) {
         res.status(500).json({ error: err.message });
     }
-}
+};
 exports.getBookById = async (req, res) => {
-    try{
-        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-            return res.status(400).json({ error: "Invalid book id" });
-        }
-        const book = await Book.findById(req.params.id).populate('owner', 'username email');
-        if(!book){
-            return res.status(404).json({ error: "Book not found" });
-        }
-        
+    try {
+        const book = await bookService.getBookByIdService(req.params.id);
         res.status(200).json(book);
-    }catch (err) {
+    } catch (err) {
+        if (err.code === 400) {
+            return res.status(400).json({ error: err.message });
+        }
+        if (err.code === 404) {
+            return res.status(404).json({ error: err.message });
+        }
         res.status(500).json({ error: err.message });
     }
-}
+};
 exports.searchBooks = async (req, res) => {
-    try{
-        // Validate search filters before constructing query.
-        // .validate() checks req.query against searchBooksSchema and returns { error, value }.
-        const { error, value } = searchBooksSchema.validate(req.query, {
-            // false = return all query validation issues in one response.
-            abortEarly: false,
-            // true = coerce compatible values (for example, "10" -> 10, date strings -> Date).
-            convert: true,
-            // true = drop query params that are not in searchBooksSchema.
-            stripUnknown: true,
+    const { error, value } = searchBooksSchema.validate(req.query, {
+        abortEarly: false,
+        convert: true,
+        stripUnknown: true,
+    });
+    if (error) {
+        return res.status(400).json({
+            error: "Invalid searchBooks query",
+            details: error.details.map((d) => d.message),
         });
-
-        if (error) {
-            return res.status(400).json({
-                error: "Invalid searchBooks query",
-                details: error.details.map((d) => d.message),
-            });
-        }
-
-        const { title, isbn, genre, minPrice, maxPrice, startDate, endDate, author } = value;
-
-        if (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice) {
-            return res.status(400).json({
-                error: "Invalid price range",
-                details: ["minPrice cannot be greater than maxPrice"],
-            });
-        }
-
-        if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-            return res.status(400).json({
-                error: "Invalid date range",
-                details: ["startDate cannot be later than endDate"],
-            });
-        }
-
-            // Start with availability and add optional filters below.
-            let query = { isAvailable: true }; //only shows available books
-            if (title) {
-                query.title = { $regex: title, $options: 'i' }; //case-insensitive regex search for title
-            }
-            if (isbn) {
-                query.isbn = isbn; //exact match for isbn
-            }
-            if (genre) {
-                query.genre = genre; //exact match for normalized genre values
-            }
-            // Price range filter.
-            if(minPrice || maxPrice){
-                query.price = {};
-                if(minPrice !== undefined && !Number.isNaN(Number(minPrice))) 
-                    query.price.$gte = Number(minPrice); // Greater than or equal to minPrice.
-                if(maxPrice !== undefined && !Number.isNaN(Number(maxPrice))) 
-                    query.price.$lte = Number(maxPrice); // Less than or equal to maxPrice.
-                if (Object.keys(query.price).length === 0) 
-                    delete query.price;
-            }
-            // Published date range filter.
-            if(startDate || endDate){
-                query.publishedDate = {};
-                if(startDate) query.publishedDate.$gte = new Date(startDate); // Greater than or equal to startDate.
-                if(endDate) query.publishedDate.$lte = new Date(endDate);   // Less than or equal to endDate.
-            }
-            if(author){
-                query.author = { $regex: author, $options: 'i' }; // Case-insensitive regex search for author.
-            }
-            if(value.owner && mongoose.Types.ObjectId.isValid(value.owner)){
-                query.owner = value.owner;
-                // When filtering by owner, include unavailable books too so they see their full listings.
-                delete query.isAvailable;
-            }
-            // Include owner username for frontend display.
-            const books = await Book.find(query).populate('owner', 'username'); // Include owner's username in results.
-            res.status(200).json(books);    
-        
-}catch (err) {
+    }
+    try {
+        const books = await bookService.searchBooksService(value);
+        res.status(200).json(books);
+    } catch (err) {
         res.status(500).json({ error: err.message });
-      }
-}
+    }
+};
 
 // GET /books/image/:id — stream a cover image from GridFS
 exports.getBookImage = async (req, res) => {
