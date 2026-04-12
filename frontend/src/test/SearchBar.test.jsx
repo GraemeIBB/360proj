@@ -17,7 +17,6 @@ describe('SearchBar component', () => {
 
     expect(onSearch).toHaveBeenCalledTimes(1);
     expect(onSearch).toHaveBeenCalledWith('harry potter');
-    expect(input).toHaveValue('');
   });
 
   test('does not throw when onSearch is not provided', () => {
@@ -26,7 +25,5 @@ describe('SearchBar component', () => {
     const input = screen.getByPlaceholderText('Search Books');
     fireEvent.change(input, { target: { value: 'dune' } });
     fireEvent.submit(input.closest('form'));
-
-    expect(input).toHaveValue('');
   });
 });

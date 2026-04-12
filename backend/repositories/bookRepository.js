@@ -5,7 +5,7 @@ async function createBook(bookObj) {
 }
 
 async function findBookById(id) {
-    return Book.findById(id);
+    return Book.findById(id).populate('owner', 'username');
 }
 
 async function deleteBookById(id) {

@@ -131,9 +131,7 @@ function ViewBook() {
     }
   };
 
-  // Accept either populated owner object or fallback shapes while backend evolves.
-  const ownerName = book?.owner?.username || book?.User?.name || "Unknown owner";
-  const ownerEmail = book?.owner?.email || book?.User?.email || "";
+  const ownerName = book?.owner?.username || "Unknown seller";
   const publishedDate = book?.publishedDate
     ? new Date(book.publishedDate).toLocaleDateString()
     : "N/A";
@@ -281,9 +279,9 @@ function ViewBook() {
                     </>
                   )}
                 </p>
-                {/* Owner */}
+                {/* Seller */}
                 <p>
-                  <strong>Owner:</strong> {ownerName}{ownerEmail ? ` (${ownerEmail})` : ""}
+                  <strong>Seller:</strong> {ownerName}
                 </p>
                 {statusMsg && <div style={{ color: statusMsg.includes('fail') ? 'red' : 'green', margin: '10px 0' }}>{statusMsg}</div>}
                 {canDelete && (
