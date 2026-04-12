@@ -18,6 +18,10 @@ function SignUp() {
   const [showPasswordMismatch, setShowPasswordMismatch] = useState(false);
   const navigate = useNavigate();
 
+  // Simple email regex for validation
+  const isValidEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
