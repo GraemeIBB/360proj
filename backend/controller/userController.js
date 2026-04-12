@@ -79,106 +79,50 @@ exports.createUser = async (req, res) => {
 };
 exports.deleteUser = async (req, res) => {
     try {
-        // Delete authorization depends on auth middleware attaching req.user.
         if (!req.user) {
             return res.status(401).json({ error: "Authentication required" });
         }
-
-        // Prevent invalid ObjectId values from reaching MongoDB queries.
-        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-            return res.status(400).json({ error: "Invalid user id" });
-        }
-
-        const user = await User.findById(req.params.id);
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-
-        // Only the account owner or an admin can delete this user.
-        if (user._id.toString() !== req.user.id && !req.user.admin) {
-            return res.status(403).json({ error: "Unauthorized" });
-        }
-
-        await User.findByIdAndDelete(req.params.id);
-        return res.status(200).json({ message: "User deleted successfully" });
+        const response = await userService.deleteUserService(req.params.id, req.user);
+        return res.status(200).json(response);
     } catch (err) {
+        if (err.code === 403) {
+            return res.status(403).json({ error: err.message });
+        }
+        if (err.code === 404) {
+            return res.status(404).json({ error: err.message });
+        }
+        if (err.code === 400) {
+            return res.status(400).json({ error: err.message });
+        }
         return res.status(500).json({ error: err.message });
     }
-}
+};
 
 exports.searchUser = async (req, res) => {
-    try{
-         // Validate search filters before constructing query.
-        // .validate() checks req.query against searchBooksSchema and returns { error, value }.
-        const {error, value} = searchUserSchema.validate(req.query, {
-            // false = return all query validation issues in one response.
+    try {
+        const { error, value } = searchUserSchema.validate(req.query, {
             abortEarly: false,
-              // true = coerce compatible values (for example, "10" -> 10, date strings -> Date).
-            convert: true, 
-             // true = drop query params that are not in searchBooksSchema.
+            convert: true,
             stripUnknown: true,
         });
-
         if (error) {
             return res.status(400).json({
                 error: "Invalid searchUser query",
                 details: error.details.map((d) => d.message),
             });
         }
-
-        const { q, firstName, lastName, email, location, username, isAdmin} = value;
-
-        const query = {};
-
-        if (firstName) {
-            // Case-insensitive partial match using MongoDB regex.
-            query.firstName = { $regex: firstName, $options: 'i' };
-        }
-        if (lastName) {
-            query.lastName = { $regex: lastName, $options: 'i' };
-        }
-        if (email) {
-            query.email = { $regex: email, $options: 'i' };
-        }
-        if (username) {
-            query.username = { $regex: username, $options: 'i' };
-        }
-        if (location) {
-            query.location = { $regex: location, $options: 'i' };
-        }
-        if (isAdmin !== undefined) {
-            query.admin = isAdmin;
-        }
-
-        if (q) {
-            const searchRegex = { $regex: q, $options: 'i' };
-            // $or matches when any one of these fields contains the search term.
-            query.$or = [
-                { firstName: searchRegex },
-                { lastName: searchRegex },
-                { email: searchRegex },
-                { username: searchRegex },
-                { location: searchRegex },
-            ];
-        }
-
-        // Exclude sensitive/internal fields from API output.
-        const users = await User.find(query).select('-password -__v');
+        const users = await userService.searchUserService(value);
         res.status(200).json(users);
     } catch (err) {
         return res.status(500).json({ error: err.message });
     }
-}
+};
 
 exports.updateUser = async (req, res) => {
-    console.log('Update user request params:', req.params);
-    console.log('Update user request body:', req.body);
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ error: 'Invalid user id' }); //400, invalid request
+        return res.status(400).json({ error: 'Invalid user id' });
     }
-
-    // Validate input
     const { error, value } = updateUserSchema.validate(req.body, {
         abortEarly: false,
         stripUnknown: true,
@@ -189,56 +133,29 @@ exports.updateUser = async (req, res) => {
             details: error.details.map((d) => d.message),
         });
     }
-
-    // If password is being updated, hash it
-    if (value.password) {
-        value.password = await bcrypt.hash(value.password, 10);
-    }
-
     try {
-        // Only allow updating allowed fields
-        const allowedFields = ['username', 'email', 'password', 'location'];
-        const update = {};
-        for (const key of allowedFields) {
-            if (value[key] !== undefined) update[key] = value[key];
-        }
-
-        const updatedUser = await User.findByIdAndUpdate(
-            id,
-            { $set: update },
-            { new: true, runValidators: true, context: 'query' }
-        ).select('-password -__v');
-
-        if (!updatedUser) {
-            return res.status(404).json({ error: 'User not found' });
-        }
+        const updatedUser = await userService.updateUserService(id, value);
         res.status(200).json({ message: 'User updated', user: updatedUser });
     } catch (err) {
-        // Handle duplicate value errors (err code 11000, e.g. username/email taken)
-        if (err.code === 11000) {
-            const field = Object.keys(err.keyPattern)[0];
-            return res.status(409).json({ error: `${field} already in use` });  //409, conflict, duplicate data
+        if (err.code === 404) {
+            return res.status(404).json({ error: err.message });
         }
-        res.status(500).json({ error: err.message });   //500, server error
+        if (err.code === 11000) {
+            return res.status(409).json({ error: 'Duplicate value' });
+        }
+        res.status(500).json({ error: err.message });
     }
 };
 
 exports.getUserById = async (req, res) => {
     try {
         const key = (req.params.id || '').trim();
-
-        // Support both canonical ObjectId lookups and username fallback in one endpoint.
-        // This helps when frontend stores username and/or when stale ids are encountered.
-        const query = mongoose.Types.ObjectId.isValid(key)
-            ? { _id: key }
-            : { username: key };
-
-        const user = await User.findOne(query).select('-password -__v');
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
+        const user = await userService.getUserByIdService(key);
         res.status(200).json(user);
     } catch (err) {
+        if (err.code === 404) {
+            return res.status(404).json({ error: err.message });
+        }
         res.status(500).json({ error: err.message });
     }
 };
@@ -247,55 +164,21 @@ exports.uploadProfilePicture = async (req, res) => {
     try {
         const { id } = req.params;
         const actorId = req.headers['x-user-id'];
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ error: 'Invalid user id' });
-        }
-
-        if (!actorId || !mongoose.Types.ObjectId.isValid(actorId)) {
-            return res.status(401).json({ error: 'Authentication required' });
-        }
-
-        if (!req.file) {
-            return res.status(400).json({ error: 'No image file uploaded' });
-        }
-
-        const actor = await User.findById(actorId).select('admin');
-        if (!actor) {
-            return res.status(401).json({ error: 'Authentication required' });
-        }
-
-        if (actorId.toString() !== id.toString() && !actor.admin) {
-            return res.status(403).json({ error: 'Unauthorized' });
-        }
-
-        const fileId = new mongoose.Types.ObjectId();
-        await new Promise((resolve, reject) => {
-            const uploadStream = getBucket().openUploadStreamWithId(fileId, req.file.originalname, {
-                metadata: { contentType: req.file.mimetype },
-            });
-            uploadStream.on('finish', resolve);
-            uploadStream.on('error', reject);
-            uploadStream.end(req.file.buffer);
-        });
-
-        const profilePicturePath = `/users/image/${fileId}`;
-        const user = await User.findByIdAndUpdate(
-            id,
-            { $set: { profilePicture: profilePicturePath } },
-            { new: true }
-        ).select('-password -__v');
-
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        return res.status(200).json({
-            message: 'Profile picture updated',
-            profilePicture: user.profilePicture,
-            user,
-        });
+        const result = await userService.uploadProfilePictureService(id, actorId, req.file);
+        return res.status(200).json(result);
     } catch (err) {
+        if (err.code === 400) {
+            return res.status(400).json({ error: err.message });
+        }
+        if (err.code === 401) {
+            return res.status(401).json({ error: err.message });
+        }
+        if (err.code === 403) {
+            return res.status(403).json({ error: err.message });
+        }
+        if (err.code === 404) {
+            return res.status(404).json({ error: err.message });
+        }
         return res.status(500).json({ error: err.message });
     }
 };
