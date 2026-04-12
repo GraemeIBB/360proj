@@ -14,6 +14,26 @@ import Button from './components/Button';
 
 import './Home.css';
 
+// No results component for when a search returns no books
+import BookImg from './assets/Book.png';
+function NoResults() {
+    return (
+        <div className="no-results-container">
+            <img
+                src={BookImg}
+                alt="No books found"
+                className="no-results-image"
+                style={{ width: '120px', marginBottom: '16px', opacity: 0.7 }}
+            />
+            <h2 className="no-results-title">No Books Found</h2>
+            <p className="no-results-message">
+                Sorry, we couldn't find any books matching your search.<br />
+                Try adjusting your filters or search terms!
+            </p>
+        </div>
+    );
+}
+
 function Home() {
         // SIDEBAR CONTENT STATE
         // 'filters' | 'myListings'
@@ -42,10 +62,8 @@ function Home() {
     const [titleFilter, setTitleFilter] = useState('');          // Filters by book title (regex match)
     const [authorFilter, setAuthorFilter] = useState('');        // Filters by author name (regex match)
     const [genreFilter, setGenreFilter] = useState('');          // Filters by genre (exact match: fiction, mystery, etc.)
-    const [ratingFilter, setRatingFilter] = useState('');        // Minimum rating filter (1-5 stars)
     const [priceMin, setPriceMin] = useState('');                // Minimum price filter (gte)
     const [priceMax, setPriceMax] = useState('');                // Maximum price filter (lte)
-    const [yearFilter, setYearFilter] = useState('');            // Publication year filter
     
     //  MAIN DATA & UI STATE 
     // allBooks: the complete list fetched on initial page load (never changes unless page reloads)
@@ -256,10 +274,8 @@ function Home() {
             setTitleFilter("");
             setAuthorFilter("");
             setGenreFilter("");
-            setRatingFilter("");
             setPriceMin("");
             setPriceMax("");
-            setYearFilter("");
             setSearchResults([]);
             setVisibleBooks(allBooks);
             setNoResults(allBooks.length === 0);
@@ -411,21 +427,6 @@ function Home() {
                         </select>
                     </div>
                     <div className="sidebar-group">
-                        <label>Minimum Rating:</label>
-                        <select
-                            id="rating-filter"
-                            value={ratingFilter}
-                            onChange={(event) => setRatingFilter(event.target.value)}
-                        >
-                            <option value="">Any</option>
-                            <option value="1">1 star</option>
-                            <option value="2">2 stars</option>
-                            <option value="3">3 stars</option>
-                            <option value="4">4 stars</option>
-                            <option value="5">5 stars</option>
-                        </select>
-                    </div>
-                    <div className="sidebar-group">
                         <label>Price Range:</label>
                         <input
                             type="number"
@@ -441,16 +442,6 @@ function Home() {
                             placeholder="Max"
                             value={priceMax}
                             onChange={(event) => setPriceMax(event.target.value)}
-                        />
-                    </div>
-                    <div className="sidebar-group">
-                        <label htmlFor="year-filter">Publication Year:</label>
-                        <input
-                            type="number"
-                            id="year-filter"
-                            placeholder="e.g., 2020"
-                            value={yearFilter}
-                            onChange={(event) => setYearFilter(event.target.value)}
                         />
                     </div>
                     <div className="sidebar-group filter-buttons">
@@ -532,7 +523,7 @@ function Home() {
                         )}
                         {error && <p className="home-status">{error}</p>}
                         {searchError && <p>{searchError}</p>}
-                        {!loading && !error && noResults && <p className="home-status">No results found</p>}
+                        {!loading && !error && noResults && <NoResults />}
 
                         {/*  MARKETPLACE BOOK GRID  */}
                         {/* Grid of clickable book cards displaying cover image, author, condition, seller, price */}

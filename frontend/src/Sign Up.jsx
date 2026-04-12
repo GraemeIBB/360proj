@@ -18,10 +18,20 @@ function SignUp() {
   const [showPasswordMismatch, setShowPasswordMismatch] = useState(false);
   const navigate = useNavigate();
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     setStatus(null);
+
+    if (!email.trim()) {
+      setStatus({ type: 'error', message: 'Email cannot be empty.' });
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setStatus({ type: 'error', message: 'Please enter a valid email address.' });
+      return;
+    }
 
     if (password !== confirmPassword) {
       setShowPasswordMismatch(true);

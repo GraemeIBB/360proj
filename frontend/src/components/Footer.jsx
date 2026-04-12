@@ -4,7 +4,7 @@ import './Footer.css';
 function Footer() {
     return (
         <footer className="footer">
-            <p>&copy; 2026 Your Company. All rights reserved.</p>
+            <p>"Book Buddies, where Books are your Buddies and your Buddies are your Books too" - Unknown</p>
         </footer>
     )
 }

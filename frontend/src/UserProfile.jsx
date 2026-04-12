@@ -127,6 +127,10 @@ function UserProfile() {
   };
 
   const handleSaveUsername = async () => {
+    if (!tempUsername.trim()) {
+      setStatusMsg('Username cannot be empty.');
+      return;
+    }
     const { user, error } = await updateUserField('username', tempUsername);
     if (!error && user) {
       setUsername(user.username);
@@ -134,7 +138,20 @@ function UserProfile() {
       setEditingUsername(false);
     }
   };
+  // Simple email regex for validation
+  const isValidEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
   const handleSaveEmail = async () => {
+    if (!tempEmail.trim()) {
+      setStatusMsg('Email cannot be empty.');
+      return;
+    }
+    if (!isValidEmail(tempEmail)) {
+      setStatusMsg('Please enter a valid email address.');
+      return;
+    }
     const { user, error } = await updateUserField('email', tempEmail);
     if (!error && user) {
       setEmail(user.email);
@@ -142,7 +159,12 @@ function UserProfile() {
       setEditingEmail(false);
     }
   };
+
   const handleSavePassword = async () => {
+    if (!tempPassword.trim()) {
+      setStatusMsg('Password cannot be empty.');
+      return;
+    }
     const { user, error } = await updateUserField('password', tempPassword);
     if (!error && user) {
       setPassword(''); // Don't store password in state
@@ -150,7 +172,12 @@ function UserProfile() {
       setEditingPassword(false);
     }
   };
+
   const handleSaveLocation = async () => {
+    if (!tempLocation.trim()) {
+      setStatusMsg('Location cannot be empty.');
+      return;
+    }
     const { user, error } = await updateUserField('location', tempLocation);
     if (!error && user) {
       setLocation(user.location);
