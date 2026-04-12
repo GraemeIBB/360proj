@@ -5,6 +5,9 @@ const bcrypt = require('bcrypt');
 const path = require('path');
 const { getBucket } = require('../config/gridfs');
 
+// Service layer for business logic
+const userService = require('../services/userService');
+
 const MIME_MAP = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.gif': 'image/gif', '.webp': 'image/webp' };
 const mimeFromFilename = (filename) => MIME_MAP[path.extname(filename).toLowerCase()] || 'application/octet-stream';
 
@@ -48,81 +51,32 @@ exports.getAllUsers = async (req, res) => {
 
 exports.createUser = async (req, res) => {
     // Validate payload before touching DB.
-        // .validate() checks req.body against createUserSchema and returns { error, value }.
-        const { error, value } = createUserSchema.validate(req.body, {
-            // false = collect all validation issues instead of stopping at the first one.
-            abortEarly: false,
-            // true = remove fields not defined in the schema.
-            stripUnknown: true,
-                        // No convert option here, so createUser keeps strict type checking.
+    const { error, value } = createUserSchema.validate(req.body, {
+        abortEarly: false,
+        stripUnknown: true,
+    });
+    if (error) {
+        return res.status(400).json({
+            error: "Invalid createUser payload",
+            details: error.details.map((d) => d.message),
         });
-
-        if (error) {
-            return res.status(400).json({
-                error: "Invalid createUser payload",
-                details: error.details.map((d) => d.message),//takes detailed error objects
-                                                            //->readable messages
-            });
-        }
-
+    }
     try {
-        const { firstName, lastName, email, location, username, password, isAdmin } = value;
-
-        // Check if user already exists (email or username)
-        const existingUser = await User.findOne({
-            $or: [{ email }, { username }] //check if eitheremail or username
-        });
-
-        if (existingUser) {
-            return res.status(409).json({ //request could not be completed 
-                error: "User already exists",
-                details: ["Email or username already in use"]
-            });
-        }
-
-        // Hash password with 10 salt rounds (bcrypt standard)
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Create and save new user with hashed password
-        const newUser = await User.create({
-            firstName,
-            lastName,
-            email,
-            location,
-            username,
-            password: hashedPassword,  // Store hashed, not plaintext
-            admin: isAdmin
-        });
-
-        // If a profile image was uploaded, store it in GridFS and attach the path.
-        if (req.file) {
-            const fileId = new mongoose.Types.ObjectId();
-            await new Promise((resolve, reject) => {
-                const uploadStream = getBucket().openUploadStreamWithId(fileId, req.file.originalname, {
-                    metadata: { contentType: req.file.mimetype },
-                });
-                uploadStream.on('finish', resolve);
-                uploadStream.on('error', reject);
-                uploadStream.end(req.file.buffer);
-            });
-            newUser.profilePicture = `/users/image/${fileId}`;
-            await newUser.save();
-        }
-
-        // Return user without password field
-        const userResponse = newUser.toObject();
-        delete userResponse.password;
-
+        const userResponse = await userService.createUserService(value, req.file);
         res.status(201).json({
             message: "User created successfully",
             user: userResponse
         });
-
     } catch (err) {
+        if (err.code === 409) {
+            return res.status(409).json({
+                error: "User already exists",
+                details: ["Email or username already in use"]
+            });
+        }
         res.status(500).json({ error: err.message });
     }
-
-}
+};
 exports.deleteUser = async (req, res) => {
     try {
         // Delete authorization depends on auth middleware attaching req.user.
